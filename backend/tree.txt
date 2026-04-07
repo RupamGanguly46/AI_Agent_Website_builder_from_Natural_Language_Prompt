@@ -1,0 +1,92 @@
+ai-builder
+├── .env
+├── .env.example
+├── .gitignore
+├── ai
+│   ├── app
+│   │   ├── graph.py
+│   │   ├── main.py
+│   │   ├── nodes
+│   │   │   ├── code_modifier.py
+│   │   │   ├── github_versioning.py
+│   │   │   ├── identify_user.py
+│   │   │   ├── json_planner.py
+│   │   │   ├── non_tech_flow.py
+│   │   │   ├── project_analysis.py
+│   │   │   ├── repo_loader.py
+│   │   │   ├── scratch_generator.py
+│   │   │   ├── tech_mode_select.py
+│   │   │   └── __init__.py
+│   │   ├── services
+│   │   │   ├── code_generator.py
+│   │   │   ├── github_services.py
+│   │   │   ├── groq_client.py
+│   │   │   └── __init__.py
+│   │   ├── state.py
+│   │   ├── utils
+│   │   │   ├── file_ops.py
+│   │   │   └── __init__.py
+│   │   └── __init__.py
+│   └── requirements.txt
+├── backend
+│   ├── agents
+│   │   ├── coder.js
+│   │   ├── graph.js
+│   │   └── planner.js
+│   ├── config
+│   │   └── db.js
+│   ├── controllers
+│   │   ├── aiController.js
+│   │   └── projectController.js
+│   ├── error.txt
+│   ├── getTree.js
+│   ├── models
+│   │   ├── Commit.js
+│   │   ├── Message.js
+│   │   └── Project.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── routes
+│   │   ├── aiRoutes.js
+│   │   └── projectRoutes.js
+│   ├── server.js
+│   ├── services
+│   │   ├── aiService.js
+│   │   ├── devServerService.js
+│   │   ├── gitService.js
+│   │   └── projectService.js
+│   ├── tree.txt
+│   └── utils
+│       ├── fileUtils.js
+│       └── logger.js
+├── frontend
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── api
+│   │   │   └── api.js
+│   │   ├── App.jsx
+│   │   ├── components
+│   │   │   ├── CommitHistory.jsx
+│   │   │   ├── FileTree.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── PromptPanel.jsx
+│   │   │   └── TerminalLogs.jsx
+│   │   ├── index.css
+│   │   ├── main.jsx
+│   │   └── pages
+│   │       ├── Dashboard.jsx
+│   │       ├── Home.jsx
+│   │       └── Workspace.jsx
+│   └── vite.config.js
+├── README.md
+└── templates
+    └── react-template
+        ├── index.html
+        ├── package.json
+        ├── src
+        │   ├── App.css
+        │   ├── App.jsx
+        │   └── main.jsx
+        └── vite.config.js

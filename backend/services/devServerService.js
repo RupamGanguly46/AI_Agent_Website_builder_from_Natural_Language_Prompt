@@ -22,8 +22,8 @@ export const startDevServer = async (projectId, projectPath) => {
     const port = nextPort++;
 
     try {
-        const nodeModulesPath = path.join(projectPath, 'node_modules');
-        if (!(await fs.pathExists(nodeModulesPath))) {
+        const vitePath = path.join(projectPath, 'node_modules', 'vite');
+        if (!(await fs.pathExists(vitePath))) {
             emitLog(projectId, 'dev-server', 'Running npm install...');
             // Run install
             await execPromise('npm install', { cwd: projectPath });
