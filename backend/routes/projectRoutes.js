@@ -18,6 +18,7 @@ import {
 const router = Router();
 
 // Project CRUD
+router.get('/create', (req, res) => res.status(405).json({ error: "Method Not Allowed. To create a project, send a POST request." }));
 router.post('/create', handleCreateProject);
 router.get('/', handleGetProjects);
 router.get('/:id', handleGetProject);
