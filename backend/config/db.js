@@ -5,6 +5,10 @@ const connectDB = async () => {
         const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/ai-builder';
         const conn = await mongoose.connect(uri);
         console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+
+        mongoose.connection.on('error', (err) => {
+            console.error(`⚠️ MongoDB Background Error: ${err.message}`);
+        });
     } catch (error) {
         console.warn(`⚠️ Primary MongoDB connection failed: ${error.message}`);
         console.warn(`🔄 Attempting to fallback to localhost...`);

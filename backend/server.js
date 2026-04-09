@@ -38,6 +38,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+process.on('uncaughtException', (err) => {
+  console.error('Unhandled Exception:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+});
+
 const startServer = async () => {
   try {
     await connectDB();
