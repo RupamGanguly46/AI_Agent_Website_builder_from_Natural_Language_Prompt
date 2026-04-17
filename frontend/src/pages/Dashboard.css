@@ -64,14 +64,23 @@ html:not(.dark) .dashboard-page .keep-dark-context .text-on-surface-variant { co
 .dashboard-page ::-webkit-scrollbar-thumb { background: rgba(173, 198, 255, 0.2); border-radius: 10px; }
 
 /* Prevent global nav and footer rules from polluting the transparent dashboard layout */
-.dashboard-page nav, 
+/* Only target sidebar nav/footer, NOT the fixed top Navbar */
+.dashboard-page > aside nav, 
+.dashboard-page > aside footer,
 .dashboard-page footer {
     background-color: transparent !important;
 }
 
-.light .dashboard-page nav, 
+.light .dashboard-page > aside nav, 
+.light .dashboard-page > aside footer,
 .light .dashboard-page footer {
     background-color: transparent !important;
+}
+
+/* Force the fixed top Navbar to always stay dark-glass in light mode */
+html:not(.dark) nav.fixed {
+    background-color: rgba(19, 19, 19, 0.85) !important;
+    backdrop-filter: blur(20px) !important;
 }
 
 /* Make inactive sidebar icons and text a bit darker in light mode so they are crisper on the background */

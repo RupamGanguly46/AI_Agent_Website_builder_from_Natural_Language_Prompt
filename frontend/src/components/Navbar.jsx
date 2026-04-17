@@ -1,22 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const [isLightMode, setIsLightMode] = useState(false);
+    const { currentUser, logout } = useAuth();
 
     const handleDashboardClick = (e) => {
         e.preventDefault();
-        if (localStorage.getItem('isAuthenticated') === 'true') {
+        if (currentUser) {
             navigate('/dashboard');
         } else {
             navigate('/login');
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
+    };
+
     useEffect(() => {
-        // Apply theme classes to the html element
         if (isLightMode) {
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
@@ -75,23 +85,47 @@ function Navbar() {
                             {isLightMode ? 'dark_mode' : 'light_mode'}
                         </span>
                     </button>
-                    <div className="flex items-center space-x-3">
-                        <Link to="/login">
-                            <button className="text-[#e5e2e1] px-4 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all duration-500 active:scale-95">
-                                Log In
+
+                    {currentUser ? (
+                        <div className="flex items-center space-x-3">
+                            <span
+                                className="navbar-username font-body text-[11px] hidden md:block"
+                                style={{ color: 'rgba(255,255,255,0.85)', WebkitTextFillColor: 'rgba(255,255,255,0.85)' }}
+                            >
+                                {currentUser.displayName || currentUser.email}
+                            </span>
+                            <button
+                                onClick={handleLogout}
+                                className="navbar-logout-btn px-4 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-white/15 transition-all duration-500 active:scale-95"
+                                style={{ color: 'white' }}
+                            >
+                                Log Out
                             </button>
-                        </Link>
-                        <Link to="/signup">
-                            <button className="text-[#e5e2e1] px-6 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-500 hover:border-white/30 active:scale-95">
-                                Sign Up
-                            </button>
-                        </Link>
-                    </div>
-                    <a onClick={handleDashboardClick} className="cursor-pointer">
-                        <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] transition-all duration-500 shadow-[0_20px_50px_rgba(173,198,255,0.05)] scale-95 active:scale-90">
-                            Start Building
-                        </button>
-                    </a>
+                            <a onClick={handleDashboardClick} className="cursor-pointer">
+                                <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] hover:scale-105 transition-all duration-500 shadow-md scale-95 active:scale-90 border border-white/30">
+                                    Dashboard
+                                </button>
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="flex items-center space-x-3">
+                            <Link to="/login">
+                                <button className="text-[#e5e2e1] px-4 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all duration-500 active:scale-95">
+                                    Log In
+                                </button>
+                            </Link>
+                            <Link to="/signup">
+                                <button className="text-[#e5e2e1] px-6 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-500 hover:border-white/30 active:scale-95">
+                                    Sign Up
+                                </button>
+                            </Link>
+                            <a onClick={handleDashboardClick} className="cursor-pointer">
+                                <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] transition-all duration-500 shadow-[0_20px_50px_rgba(173,198,255,0.05)] scale-95 active:scale-90">
+                                    Start Building
+                                </button>
+                            </a>
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>
@@ -99,3 +133,4 @@ function Navbar() {
 }
 
 export default Navbar;
+
