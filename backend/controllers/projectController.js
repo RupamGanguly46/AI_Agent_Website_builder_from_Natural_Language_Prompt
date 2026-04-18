@@ -137,7 +137,8 @@ export const handleUpdateFileContent = async (req, res, next) => {
         await writeFiles(project.repoPath, [{ path: filePath, content }]);
         
         // Log to SSE stream so Frontend instantly triggers a refresh via our auto-sync logic
-        emitLog(project._id, 'info', `Committing manual edits to ${filePath}...`);
+        emitLog(project._id.toString(), 'info', `Committing manual edits to ${filePath}...`);
+
 
         // Generate the Git commit dynamically
         const commitHash = await commitChanges(project.repoPath, `Manual edit: ${filePath}`);
