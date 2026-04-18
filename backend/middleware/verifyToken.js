@@ -7,12 +7,17 @@ import admin from '../config/firebaseAdmin.js';
  */
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
+    let idToken = null;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        idToken = authHeader.split('Bearer ')[1];
+    } else if (req.query.token) {
+        idToken = req.query.token;
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    if (!idToken) {
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
 
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);

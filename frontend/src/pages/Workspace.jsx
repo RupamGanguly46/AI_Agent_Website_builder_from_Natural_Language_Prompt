@@ -227,10 +227,18 @@ function Workspace() {
     useEffect(() => {
         if (!projectId) return;
 
-        const url = SERVER_URL.replace('127.0.0.1', 'localhost');
-        const eventSource = new EventSource(`${url}/projects/${projectId}/logs`);
+        let eventSource;
+        const initSSE = async () => {
+            let token = '';
+            if (currentUser) {
+                try {
+                    token = await currentUser.getIdToken();
+                } catch (e) {}
+            }
+            const url = SERVER_URL.replace('127.0.0.1', 'localhost');
+            eventSource = new EventSource(`${url}/projects/${projectId}/logs?token=${token}`);
 
-        eventSource.onmessage = (event) => {
+            eventSource.onmessage = (event) => {
             try {
                 const logData = JSON.parse(event.data);
                 // Keep only the latest 100 logs
@@ -248,11 +256,14 @@ function Workspace() {
                 console.error("Error parsing log:", err);
             }
         };
+        }; // Close initSSE
+
+        initSSE();
 
         return () => {
-            eventSource.close();
+            if (eventSource) eventSource.close();
         };
-    }, [projectId]);
+    }, [projectId, currentUser]);
 
     useEffect(() => {
         if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -773,12 +784,12 @@ function Workspace() {
                                         <div key={i} className="ws-commit-item p-4 rounded-xl flex justify-between items-center group">
                                             <div>
                                                 <p className="ws-commit-title text-sm font-bold text-[#d8e2ff]">{commit.message || 'Commit'}</p>
-                                                <p className="text-xs text-slate-500">{new Date(commit.timestamp).toLocaleString()} • {commit.hash?.substring(0, 6)}</p>
+                                                <p className="text-xs text-slate-500">{new Date(commit.date || commit.createdAt).toLocaleString()} • {commit.commitHash?.substring(0, 6)}</p>
                                             </div>
                                             {i > 0 && (
                                                 <button
                                                     className="ws-btn-revert px-3 py-1 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] font-bold transition-colors"
-                                                    onClick={() => handleRevert(commit.hash)}
+                                                    onClick={() => handleRevert(commit.commitHash)}
                                                     disabled={isReverting}
                                                     style={{ fontFamily: 'Manrope' }}
                                                 >
