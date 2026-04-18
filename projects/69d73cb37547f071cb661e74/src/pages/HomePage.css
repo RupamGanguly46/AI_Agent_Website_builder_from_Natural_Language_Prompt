@@ -1,0 +1,86 @@
+.home-page {
+    flex-grow: 1; /* Allows it to take available space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    text-align: center;
+    background: radial-gradient(circle at top left, #ff007f, transparent 50%),
+                radial-gradient(circle at bottom right, #00ffff, transparent 50%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+.home-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 4rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    color: #fff;
+}
+
+.home-content h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #ff7e5f, #feb47b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+}
+
+.home-content p {
+    font-size: 1.5rem;
+    color: #e0e0e0;
+    margin-bottom: 2.5rem;
+}
+
+.cta-button {
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+    border: none;
+    padding: 1.2rem 2.5rem;
+    font-size: 1.3rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
+}
+
+.cta-button:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 198, 255, 0.6);
+    background: linear-gradient(45deg, #0072ff, #00c6ff);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .home-page {
+        padding: 2rem 1rem;
+    }
+    .home-content {
+        padding: 2rem;
+        border-radius: 15px;
+    }
+    .home-content h1 {
+        font-size: 2.5rem;
+    }
+    .home-content p {
+        font-size: 1.2rem;
+    }
+    .cta-button {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .home-content h1 {
+        font-size: 2rem;
+    }
+    .home-content p {
+        font-size: 1rem;
+    }
+}

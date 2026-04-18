@@ -1,0 +1,47 @@
+/* Global Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body, #root {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* A modern, vibrant font */
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Dark, vibrant gradient */
+    color: #f0f0f0; /* Light text for contrast */
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add Poppins font import (or similar) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+
+/* App Layout */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensures app takes full viewport height */
+}
+
+.main-content {
+    flex-grow: 1; /* Allows main content to take all available space */
+    display: flex; /* Ensures child pages can use flex-grow: 1 */
+    flex-direction: column;
+}
+
+/* General Link Styling */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    text-decoration: none;
+}

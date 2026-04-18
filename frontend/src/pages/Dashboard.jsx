@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProjects, createProject } from '../api/api';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
 function Dashboard() {
     const navigate = useNavigate();
+    const { currentUser, logout } = useAuth();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -13,6 +15,15 @@ function Dashboard() {
     const [isCreating, setIsCreating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLightMode, setIsLightMode] = useState(document.documentElement.classList.contains('light'));
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
+    };
 
     useEffect(() => {
         fetchProjects();
@@ -98,17 +109,21 @@ function Dashboard() {
         <div className="dashboard-page flex bg-background overflow-hidden relative min-h-[1024px] w-full">
             {/* NavigationDrawer */}
             <aside className="w-64 fixed left-0 top-0 flex flex-col h-full border-r border-white/5 bg-[#131315]/80 backdrop-blur-xl shadow-[20px_0px_40px_rgba(173,198,255,0.03)] z-50 transition-all duration-300">
-                <div className="p-8">
-                    <h1
+                <div className="p-6">
+                    <button
                         onClick={() => navigate('/')}
-                        className="text-xl font-bold font-manrope tracking-tight cursor-pointer hover:opacity-80 transition-opacity"
-                        style={isLightMode
-                            ? { color: '#1e3a8a' }
-                            : { background: 'linear-gradient(to right, #adc6ff, #c4b5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }
-                        }
+                        className="cursor-pointer hover:opacity-85 hover:scale-105 transition-all duration-300 block"
+                        title="Go to Home"
                     >
-                        DEVELOP WITH<div>NIRMANA</div>
-                    </h1>
+                        <img
+                            src={isLightMode
+                                ? 'https://i.postimg.cc/T3KpRws9/Light_Logo.png'
+                                : 'https://i.postimg.cc/8z7j15Yw/Dark_Logo.png'
+                            }
+                            alt="Nirmana Logo"
+                            className="h-8 w-auto object-contain"
+                        />
+                    </button>
                 </div>
                 <nav className="flex-1 px-4 space-y-2 mt-4 font-manrope tracking-tight">
                     <a className="flex items-center gap-4 px-4 py-3 text-primary bg-primary/10 border-r-2 border-primary transition-all duration-300 ease-in-out cursor-pointer">
@@ -158,9 +173,10 @@ function Dashboard() {
                         >
                             <span className="material-symbols-outlined" id="theme-icon">{isLightMode ? 'light_mode' : 'dark_mode'}</span>
                         </button>
+                        {/* User info + Logout */}
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden md:block">
-                                <p className="text-xs font-semibold text-on-surface font-manrope">Project Alpha</p>
+                                <p className="text-xs font-semibold text-on-surface font-manrope">{currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}</p>
                                 <p className="text-[10px] text-primary">Active Session</p>
                             </div>
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-[1px]">
@@ -168,6 +184,13 @@ function Dashboard() {
                                     <img alt="User Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEwsmZzyjOawnG17OyWppFKBOyP1UeuWIPxqud-Kz-NrfCqijP4E0I0EeDGxIk9y5Z20zwb5Ld6Jqb4H_WIOMvU1i7vTH91FSXUSSSnyhsj3S7BZa5dyaJeaftL7vEp03KbJsf1gU1-ggFEf_kJx8GmXtpUKOiK-s49Oobq73bDoULcdvJ_kIxwapBFci4ZoQG4cWx06ozIGchNQkKyIEDDACFWtGtLIiLGerYFO7sa5t_9bpgGUziUaiBc18a-puE65EgeEgseqg" />
                                 </div>
                             </div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-red-400/50 hover:bg-red-500/10 transition-all duration-300"
+                            >
+                                <span className="material-symbols-outlined" style={{fontSize: '14px'}}>logout</span>
+                                Log Out
+                            </button>
                         </div>
                     </div>
                 </header>
