@@ -13,7 +13,7 @@ const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
 /**
  * Create a new project from a template
  */
-export const createProject = async (name, framework = 'react') => {
+export const createProject = async (name, framework = 'react', userId) => {
     const templatePath = path.join(TEMPLATES_DIR, `${framework}-template`);
 
     // Verify template exists
@@ -22,7 +22,7 @@ export const createProject = async (name, framework = 'react') => {
     }
 
     // Create project directory and copy template
-    const project = new Project({ name, framework, repoPath: '' });
+    const project = new Project({ name, framework, repoPath: '', userId });
     const projectId = project._id.toString();
     const repoPath = path.join(PROJECTS_DIR, projectId);
 
@@ -51,10 +51,10 @@ export const createProject = async (name, framework = 'react') => {
 };
 
 /**
- * Get all projects
+ * Get all projects for a specific user
  */
-export const getAllProjects = async () => {
-    return Project.find().sort({ createdAt: -1 });
+export const getAllProjects = async (userId) => {
+    return Project.find({ userId }).sort({ createdAt: -1 });
 };
 
 /**

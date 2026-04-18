@@ -7,6 +7,7 @@ import path from 'path';
 import connectDB from './config/db.js';
 import projectRoutes from './routes/projectRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 // Load env from root .env file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -18,7 +19,10 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 
 // Health check
@@ -29,6 +33,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/projects', projectRoutes);
 app.use('/ai', aiRoutes);
+app.use('/users', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createProject } from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 const CAROUSEL_ITEMS = [
     {
@@ -22,6 +23,7 @@ const CAROUSEL_ITEMS = [
 
 function Home() {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [showModal, setShowModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
@@ -126,7 +128,7 @@ function Home() {
                 <div className="container mx-auto px-6 text-center reveal">
                     <div className="relative inline-block group">
                         <div className="absolute -inset-40 bg-primary/10 blur-[120px] rounded-full group-hover:bg-primary/20 transition-all duration-700"></div>
-                        <h2 ref={brandRef} className="massive-type font-headline font-black cursor-default transition-all duration-1000 select-none tracking-[-0.08em] hover:tracking-[-0.05em] parallax-text vibrant-glow-blue">
+                        <h2 ref={brandRef} className="massive-type font-headline font-black cursor-pointer transition-all duration-1000 select-none tracking-[-0.08em] hover:tracking-[-0.05em] parallax-text vibrant-glow-blue" onClick={() => navigate('/')}>
                             NIRMANA
                         </h2>
                     </div>
@@ -228,7 +230,7 @@ function Home() {
                         <div className="relative z-10 flex flex-col items-center">
                             <button 
                                 className="bg-primary hover:bg-white text-black px-16 py-8 rounded-full font-black text-2xl uppercase tracking-tighter transition-all duration-700 shadow-[0_0_80px_rgba(173,198,255,0.4)] hover:shadow-[0_0_120px_rgba(255,255,255,0.6)] hover:scale-105 active:scale-95"
-                                onClick={() => setShowModal(true)}
+                                onClick={() => currentUser ? navigate('/dashboard') : navigate('/login')}
                             >
                                 Start Building Now
                             </button>

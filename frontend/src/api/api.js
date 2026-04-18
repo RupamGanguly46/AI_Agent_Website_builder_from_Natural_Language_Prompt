@@ -1,11 +1,23 @@
 import axios from 'axios';
+import { auth } from '../firebase/firebaseConfig';
 
-const API_BASE = 'http://127.0.0.1:5000';
+const API_BASE = 'http://127.0.0.1:5001';
 export const SERVER_URL = API_BASE;
 
 const api = axios.create({
     baseURL: API_BASE,
     headers: { 'Content-Type': 'application/json' },
+});
+
+// Attach a fresh Firebase ID token to every request as a Bearer token
+api.interceptors.request.use(async (config) => {
+    if (auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken();
+        config.headers['Authorization'] = `Bearer ${idToken}`;
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 // ─── Projects ────────────────────────────────────────

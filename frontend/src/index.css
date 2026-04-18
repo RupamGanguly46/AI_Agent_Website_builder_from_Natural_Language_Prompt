@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ═══════════════════════════════════════════════════════════
    AI WEBSITE BUILDER — DESIGN SYSTEM
    ═══════════════════════════════════════════════════════════ */
@@ -953,7 +955,7 @@ a:hover {
 }
 .light .text-on-background, 
 .light h1, .light h2, .light h3, .light h4, 
-.light p, .light span:not(.material-symbols-outlined):not(.vibrant-glow-blue):not(.vibrant-glow-blue-v2) {
+.light p, .light span:not(.material-symbols-outlined):not(.vibrant-glow-blue):not(.vibrant-glow-blue-v2):not(.navbar-username) {
     color: #1a1a1a !important;
 }
 
@@ -987,6 +989,11 @@ a:hover {
     color: #e5e2e1 !important; 
     border-color: rgba(255, 255, 255, 0.1) !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
+}
+/* Logout button hover in light mode — must match dark mode feel */
+.light nav .navbar-logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
 }
 .light footer {
     background-color: #0e0e0e !important;

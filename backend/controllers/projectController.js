@@ -5,6 +5,7 @@ import { listFiles, readFileContent, writeFiles } from '../utils/fileUtils.js';
 import { startDevServer, stopDevServer, getDevServerStatus } from '../services/devServerService.js';
 import Commit from '../models/Commit.js';
 import Message from '../models/Message.js';
+import User from '../models/User.js';
 import { logEmitter, getLogBuffer } from '../utils/logger.js';
 
 /**
@@ -13,12 +14,18 @@ import { logEmitter, getLogBuffer } from '../utils/logger.js';
 export const handleCreateProject = async (req, res, next) => {
     try {
         const { name, framework } = req.body;
+        const firebaseUid = req.user.uid; // set by verifyToken middleware
 
         if (!name) {
             return res.status(400).json({ error: 'Project name is required' });
         }
 
-        const result = await createProject(name, framework);
+        const user = await User.findOne({ firebaseUid });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found in database. Please sync.' });
+        }
+
+        const result = await createProject(name, framework, user._id);
         res.status(201).json(result);
     } catch (error) {
         next(error);
@@ -30,7 +37,14 @@ export const handleCreateProject = async (req, res, next) => {
  */
 export const handleGetProjects = async (req, res, next) => {
     try {
-        const projects = await getAllProjects();
+        const firebaseUid = req.user.uid; // set by verifyToken middleware
+
+        const user = await User.findOne({ firebaseUid });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found in database.' });
+        }
+
+        const projects = await getAllProjects(user._id);
         res.json(projects);
     } catch (error) {
         next(error);

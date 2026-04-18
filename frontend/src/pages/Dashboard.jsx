@@ -87,8 +87,20 @@ function Dashboard() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen w-full">
-                <span className="loading-spinner text-primary text-4xl" />
+            <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen w-full" style={{background: '#0d0d12'}}>
+                {/* Ambient glow */}
+                <div style={{position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(173,198,255,0.08) 0%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-60%)', filter:'blur(40px)', pointerEvents:'none'}} />
+                {/* Logo */}
+                <div style={{marginBottom:32, display:'flex', alignItems:'center', gap:12}}>
+                    <div style={{width:36, height:36, borderRadius:10, overflow:'hidden', boxShadow:'0 0 20px rgba(173,198,255,0.3)'}}>
+                        <img src="/Logo.png" alt="Nirmana" style={{width:'100%', height:'100%', objectFit:'contain'}} />
+                    </div>
+                    <span style={{fontFamily:'Manrope, sans-serif', fontWeight:700, fontSize:18, letterSpacing:2, color:'rgba(255,255,255,0.9)', textTransform:'uppercase'}}>Nirmana</span>
+                </div>
+                {/* Spinner ring */}
+                <div style={{width:48, height:48, borderRadius:'50%', border:'2px solid rgba(173,198,255,0.15)', borderTopColor:'#adc6ff', animation:'spin 0.9s linear infinite', marginBottom:20}} />
+                {/* Label */}
+                <p style={{fontFamily:'Manrope, sans-serif', fontSize:11, letterSpacing:'0.25em', textTransform:'uppercase', color:'rgba(173,198,255,0.5)', fontWeight:600}}>Preparing Studio</p>
             </div>
         );
     }
@@ -141,10 +153,11 @@ function Dashboard() {
                 {/* TopAppBar */}
                 <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[#131315]/40 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-white/5 transition-all duration-300">
                     <div className="flex items-center gap-4 flex-1 max-w-xl">
-                        <div className="relative w-full">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                        <div className="flex items-center w-full bg-surface-container-lowest rounded-xl px-3 gap-2 focus-within:ring-1 focus-within:ring-primary border border-transparent" style={isLightMode ? {border: '1px solid #e2e8f0', background: '#f8fafc'} : {}}>
+                            <span className="material-symbols-outlined text-slate-400 flex-shrink-0 select-none" style={{fontSize: '16px'}}>search</span>
                             <input 
-                                className="w-full bg-surface-container-lowest border-none rounded-xl pl-10 pr-4 py-2 text-xs text-on-surface focus:ring-1 focus:ring-primary-container placeholder:text-slate-400/50 transition-all outline-none" 
+                                className="flex-1 bg-transparent outline-none py-2 text-xs placeholder:text-slate-400/60 transition-all" 
+                                style={isLightMode ? {color: '#1e293b'} : {color: 'inherit'}}
                                 placeholder="Search cinematic workflows..." 
                                 type="text"
                                 value={searchQuery}
@@ -187,11 +200,11 @@ function Dashboard() {
                     {/* Hero Header */}
                     <div className="flex justify-between items-end mb-12">
                         <div>
-                            <h2 className="text-5xl font-extrabold font-headline tracking-tighter mb-2 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent transition-all duration-300">Your Projects</h2>
+                            <h2 className="text-5xl font-extrabold font-headline tracking-tighter mb-2 text-white transition-all duration-300" style={{WebkitTextFillColor: 'unset'}}>Your Projects</h2>
                             <p className="text-on-surface-variant max-w-lg font-body transition-colors duration-300">Manage and deploy your high-fidelity cinematic websites within our ethereal integrated development environment.</p>
                         </div>
                         <button 
-                            className="bg-gradient-to-br from-primary to-primary-container text-on-primary font-manrope font-bold py-3 px-8 rounded-xl glow-primary hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
+                            className="bg-[#adc6ff] hover:bg-[#bdd4ff] text-black font-manrope font-bold py-3 px-8 rounded-xl hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(173,198,255,0.3)]"
                             onClick={() => setShowModal(true)}
                         >
                             <span className="material-symbols-outlined text-lg">add</span>
@@ -261,10 +274,19 @@ function Dashboard() {
                     </div>
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-[10px] uppercase tracking-widest font-bold text-outline mb-2">Project Name</label>
+                            <label
+                                className="block text-[10px] uppercase tracking-widest font-bold mb-2"
+                                style={isLightMode ? {color: '#374151'} : {color: '#94a3b8'}}
+                            >
+                                Project Name
+                            </label>
                             <div className="relative">
                                 <input 
-                                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/30 text-on-surface" 
+                                    className="w-full rounded-xl px-4 py-3 focus:ring-2 outline-none transition-all"
+                                    style={isLightMode
+                                        ? {background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#1e293b'}
+                                        : {background: 'var(--color-surface-container-lowest)', border: '1px solid var(--color-outline-variant)', color: 'var(--color-on-surface)'}
+                                    }
                                     placeholder="e.g. Neon_Dream_System" 
                                     type="text"
                                     value={projectName}
@@ -274,38 +296,40 @@ function Dashboard() {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-[10px] uppercase tracking-widest font-bold text-outline mb-2">Select Framework</label>
+                            <label
+                                className="block text-[10px] uppercase tracking-widest font-bold mb-2"
+                                style={isLightMode ? {color: '#374151'} : {color: '#94a3b8'}}
+                            >
+                                Select Framework
+                            </label>
                             <div className="grid grid-cols-3 gap-3">
-                                <button 
-                                    onClick={() => setFramework('react')}
-                                    className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${framework === 'react' ? 'bg-surface-container-low border border-primary/40 text-primary' : 'bg-surface-container-low border border-black/5 dark:border-white/5 text-on-surface-variant hover:border-primary/20'}`}
-                                >
-                                    <span className="material-symbols-outlined">data_object</span>
-                                    <span className="text-[10px] font-bold">React</span>
-                                </button>
-                                <button 
-                                    onClick={() => setFramework('node')}
-                                    className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${framework === 'node' ? 'bg-surface-container-low border border-primary/40 text-primary' : 'bg-surface-container-low border border-black/5 dark:border-white/5 text-on-surface-variant hover:border-primary/20'}`}
-                                >
-                                    <span className="material-symbols-outlined">api</span>
-                                    <span className="text-[10px] font-bold">Node.js</span>
-                                </button>
-                                <button 
-                                    onClick={() => setFramework('python')}
-                                    className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${framework === 'python' ? 'bg-surface-container-low border border-primary/40 text-primary' : 'bg-surface-container-low border border-black/5 dark:border-white/5 text-on-surface-variant hover:border-primary/20'}`}
-                                >
-                                    <span className="material-symbols-outlined">terminal</span>
-                                    <span className="text-[10px] font-bold">Python</span>
-                                </button>
+                                {[{id:'react',icon:'data_object',label:'React'},{id:'node',icon:'api',label:'Node.js'},{id:'python',icon:'terminal',label:'Python'}].map(({id, icon, label}) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => setFramework(id)}
+                                        className="p-4 rounded-xl flex flex-col items-center gap-2 transition-all"
+                                        style={framework === id
+                                            ? {background: isLightMode ? '#dbeafe' : 'var(--color-surface-container-low)', border: '1px solid #adc6ff', color: '#1d4ed8'}
+                                            : {background: isLightMode ? '#f8fafc' : 'var(--color-surface-container-low)', border: isLightMode ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.05)', color: isLightMode ? '#374151' : 'var(--color-on-surface-variant)'}
+                                        }
+                                    >
+                                        <span className="material-symbols-outlined">{icon}</span>
+                                        <span className="text-[10px] font-bold">{label}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
                         <div className="pt-4 flex gap-4">
                             <button 
-                                className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-xl glow-primary hover:opacity-90 transition-all disabled:opacity-50"
+                                className="w-full bg-[#adc6ff] hover:bg-[#bdd4ff] text-black font-headline font-bold py-4 rounded-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 shadow-[0_0_20px_rgba(173,198,255,0.3)] flex items-center justify-center gap-2"
                                 onClick={handleCreate}
                                 disabled={isCreating || !projectName.trim()}
                             >
-                                {isCreating ? 'Initializing Studio...' : 'Initialize Studio Environment'}
+                                {isCreating ? (
+                                    <><div style={{width:16,height:16,borderRadius:'50%',border:'2px solid rgba(0,0,0,0.2)',borderTopColor:'#000',animation:'spin 0.8s linear infinite'}} /> Initializing...</>
+                                ) : (
+                                    <><span className="material-symbols-outlined" style={{fontSize:18}}>rocket_launch</span> Initialize Studio Environment</>
+                                )}
                             </button>
                         </div>
                     </div>
