@@ -241,6 +241,11 @@ function Workspace() {
             eventSource.onmessage = (event) => {
             try {
                 const logData = JSON.parse(event.data);
+                // Clean ANSI characters natively from node processes
+                if (logData.message) {
+                    logData.message = logData.message.replace(/\x1B\[[0-9;]*[mK]/g, '').trim();
+                }
+                
                 // Keep only the latest 100 logs
                 setServerLogs(prev => [...prev.slice(-99), logData]);
                 
@@ -322,7 +327,7 @@ function Workspace() {
         try {
             await revertToCommit(projectId, commitHash);
             await fetchProjectData();
-            setMessages(prev => [...prev, { role: 'assistant', content: `⏪ Reverted to commit ${commitHash.substring(0, 7)}` }]);
+            // Data is refreshed natively from DB, skipping volatile local state overrides!
         } catch (err) {
             alert('Failed to revert: ' + (err.response?.data?.error || err.message));
         } finally {

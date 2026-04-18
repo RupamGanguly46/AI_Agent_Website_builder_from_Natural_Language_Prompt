@@ -155,10 +155,27 @@ export const handleRevert = async (req, res, next) => {
         const project = await getProject(projectId);
         await revertToCommit(project.repoPath, commitHash);
 
-        // Load messages up to this commit
-        const messages = await Message.find({
+        // Fetch surviving Git commits after the hard reset
+        const activeGitLog = await getCommits(project.repoPath);
+        const survivingHashes = activeGitLog.map(c => c.commitHash);
+
+        // Purge orphaned Mongo records that no longer exist in the Git tree
+        await Commit.deleteMany({
             projectId: project._id,
-            commitHash,
+            commitHash: { $nin: survivingHashes }
+        });
+
+        // Add an automatic system message representing the reversion in the conversation history!
+        await Message.create({
+            projectId: project._id,
+            commitHash: commitHash,
+            role: 'assistant',
+            content: `🔄 Successfully reverted the project workspace to earlier checkpoint (\`${commitHash.substring(0, 6)}\`). All future generations will branch from this state.`
+        });
+
+        // Load all historical messages to preserve conversation memory
+        const messages = await Message.find({
+            projectId: project._id
         }).sort({ createdAt: 1 });
 
         res.json({
