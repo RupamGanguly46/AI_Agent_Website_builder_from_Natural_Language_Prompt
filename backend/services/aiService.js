@@ -5,6 +5,7 @@ import { getProject } from './projectService.js';
 import Commit from '../models/Commit.js';
 import Message from '../models/Message.js';
 import { emitLog } from '../utils/logger.js';
+import { uploadProjectToCloud } from './storageService.js';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -113,6 +114,9 @@ export const processPrompt = async (projectId, prompt) => {
         role: 'assistant',
         content: finalAssistantContent,
     });
+
+    emitLog(projectId, 'info', `Safely backing up AI generation payload upward to Firebase Storage...`);
+    await uploadProjectToCloud(project._id);
 
     return {
         commitHash,

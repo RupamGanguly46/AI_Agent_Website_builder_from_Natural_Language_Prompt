@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import Project from '../models/Project.js';
 import Commit from '../models/Commit.js';
 import { initRepo } from './gitService.js';
+import { uploadProjectToCloud, downloadProjectFromCloud } from './storageService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
@@ -43,6 +44,9 @@ export const createProject = async (name, framework = 'react', userId) => {
         prompt: 'Initial template setup',
     });
 
+    // Seed the blank blueprint up to Firebase Cloud natively
+    await uploadProjectToCloud(project._id);
+
     return {
         projectId: project._id,
         repoPath,
@@ -65,6 +69,17 @@ export const getProject = async (projectId) => {
     if (!project) {
         throw new Error('Project not found');
     }
+
+    // NATIVE EPHEMERAL DISK CHECK
+    // If Render goes to sleep, MongoDB survives but the generated codebase folder vanishes!
+    if (!(await fs.pathExists(project.repoPath))) {
+        console.warn(`[Sync] Project ${projectId} missing from ephemeral disk. Initiating cloud rehydration...`);
+        const restored = await downloadProjectFromCloud(projectId);
+        if (!restored) {
+            throw new Error('Critical failure: Repository lost and could not be successfully restored from Firebase Cloud Data.');
+        }
+    }
+
     return project;
 };
 

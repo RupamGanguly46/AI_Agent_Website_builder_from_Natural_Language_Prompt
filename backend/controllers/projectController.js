@@ -1,5 +1,6 @@
 import { getProject, getAllProjects, createProject } from '../services/projectService.js';
 import { getCommits, revertToCommit, commitChanges } from '../services/gitService.js';
+import { uploadProjectToCloud } from '../services/storageService.js';
 import mongoose from 'mongoose';
 import { listFiles, readFileContent, writeFiles } from '../utils/fileUtils.js';
 import { startDevServer, stopDevServer, getDevServerStatus } from '../services/devServerService.js';
@@ -157,6 +158,9 @@ export const handleUpdateFileContent = async (req, res, next) => {
             content: `✏️ Manually edited \`${filePath}\` utilizing the onboard code editor. Changes committed instantly.`
         });
 
+        // Backup this newly mutated local snapshot up to Firebase!
+        await uploadProjectToCloud(project._id);
+
         res.json({ success: true, path: filePath, commitHash });
     } catch (error) {
         next(error);
@@ -194,6 +198,9 @@ export const handleRevert = async (req, res, next) => {
             role: 'assistant',
             content: `🔄 Successfully reverted the project workspace to earlier checkpoint (\`${commitHash.substring(0, 6)}\`). All future generations will branch from this state.`
         });
+
+        // Backup this newly reversed local snapshot codebase up to Firebase!
+        await uploadProjectToCloud(project._id);
 
         // Load all historical messages to preserve conversation memory
         const messages = await Message.find({
