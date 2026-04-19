@@ -24,7 +24,6 @@ if (!serviceAccount) {
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        storageBucket: 'nirmana-46.firebasestorage.app'
     });
 }
 
