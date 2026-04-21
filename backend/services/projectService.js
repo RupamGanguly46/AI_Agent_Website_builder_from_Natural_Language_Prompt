@@ -8,7 +8,8 @@ import { uploadProjectToCloud, downloadProjectFromCloud } from './storageService
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
-const PROJECTS_DIR = path.join(ROOT_DIR, 'projects');
+// Azure Support: Mount external persistent volume if provided, fallback to local
+const PROJECTS_DIR = process.env.AZURE_STORAGE_MOUNT_PATH || path.join(ROOT_DIR, 'projects');
 const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
 
 /**

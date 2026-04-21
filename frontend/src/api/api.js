@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { auth } from '../firebase/firebaseConfig';
 
-// Vite evaluates import.meta.env.PROD during the Vercel build to safely map out environments
-const BUILD_URL = import.meta.env.PROD ? 'https://nirmana-backend.onrender.com' : 'http://127.0.0.1:5001';
-const API_BASE = import.meta.env.VITE_API_BASE_URL || BUILD_URL;
+// Set this to your Azure App Service URL once deployed e.g., 'https://ai-builder-api-123.azurewebsites.net'
+// If you configure Vite environment variables in Azure Static Web Apps, VITE_API_BASE_URL will take precedence.
+const AZURE_CLOUD_BUILD_URL = import.meta.env.PROD ? 'https://nirmana-server.azurewebsites.net' : 'http://127.0.0.1:5001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || AZURE_CLOUD_BUILD_URL;
 export const SERVER_URL = API_BASE;
 
 const api = axios.create({
