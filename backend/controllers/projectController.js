@@ -9,6 +9,10 @@ import Message from '../models/Message.js';
 import User from '../models/User.js';
 import { logEmitter, getLogBuffer, emitLog } from '../utils/logger.js';
 
+const logControllerError = (handlerName, error, req) => {
+    console.error(`[ProjectController:${handlerName}] ${req.method} ${req.originalUrl} failed:`, error.message);
+};
+
 /**
  * POST /projects/create
  */
@@ -23,12 +27,14 @@ export const handleCreateProject = async (req, res, next) => {
 
         const user = await User.findOne({ firebaseUid });
         if (!user) {
+            console.warn(`[ProjectController:handleCreateProject] User missing for firebaseUid ${firebaseUid}`);
             return res.status(404).json({ error: 'User not found in database. Please sync.' });
         }
 
         const result = await createProject(name, framework, user._id);
         res.status(201).json(result);
     } catch (error) {
+        logControllerError('handleCreateProject', error, req);
         next(error);
     }
 };
@@ -48,6 +54,7 @@ export const handleGetProjects = async (req, res, next) => {
         const projects = await getAllProjects(user._id);
         res.json(projects);
     } catch (error) {
+        logControllerError('handleGetProjects', error, req);
         next(error);
     }
 };
@@ -58,12 +65,14 @@ export const handleGetProjects = async (req, res, next) => {
 export const handleGetProject = async (req, res, next) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            console.warn(`[ProjectController:handleGetProject] Invalid project id format: ${req.params.id}`);
             return res.status(400).json({ error: 'Invalid project ID format.' });
         }
         
         const project = await getProject(req.params.id);
         res.json(project);
     } catch (error) {
+        logControllerError('handleGetProject', error, req);
         next(error);
     }
 };
@@ -90,6 +99,7 @@ export const handleGetCommits = async (req, res, next) => {
 
         res.json(enriched);
     } catch (error) {
+        logControllerError('handleGetCommits', error, req);
         next(error);
     }
 };
@@ -103,6 +113,7 @@ export const handleGetFiles = async (req, res, next) => {
         const files = await listFiles(project.repoPath);
         res.json(files);
     } catch (error) {
+        logControllerError('handleGetFiles', error, req);
         next(error);
     }
 };
@@ -117,11 +128,13 @@ export const handleGetFileContent = async (req, res, next) => {
         const content = await readFileContent(project.repoPath, filePath);
 
         if (content === null) {
+            console.warn(`[ProjectController:handleGetFileContent] File not found in project ${project._id}: ${filePath}`);
             return res.status(404).json({ error: 'File not found' });
         }
 
         res.json({ path: filePath, content });
     } catch (error) {
+        logControllerError('handleGetFileContent', error, req);
         next(error);
     }
 };
@@ -159,10 +172,13 @@ export const handleUpdateFileContent = async (req, res, next) => {
         });
 
         // Backup this newly mutated local snapshot up to AWS S3!
-        uploadProjectToCloud(project._id).catch(console.error);
+        uploadProjectToCloud(project._id).catch((err) => {
+            console.error(`[S3] Backup after manual edit failed for project ${project._id}:`, err.message);
+        });
 
         res.json({ success: true, path: filePath, commitHash });
     } catch (error) {
+        logControllerError('handleUpdateFileContent', error, req);
         next(error);
     }
 };
@@ -200,7 +216,9 @@ export const handleRevert = async (req, res, next) => {
         });
 
         // Backup this newly reversed local snapshot codebase up to AWS S3!
-        uploadProjectToCloud(project._id).catch(console.error);
+        uploadProjectToCloud(project._id).catch((err) => {
+            console.error(`[S3] Backup after revert failed for project ${project._id}:`, err.message);
+        });
 
         // Load all historical messages to preserve conversation memory
         const messages = await Message.find({
@@ -213,6 +231,7 @@ export const handleRevert = async (req, res, next) => {
             messages,
         });
     } catch (error) {
+        logControllerError('handleRevert', error, req);
         next(error);
     }
 };
@@ -225,6 +244,7 @@ export const handleGetMessages = async (req, res, next) => {
         const messages = await Message.find({ projectId: req.params.id }).sort({ createdAt: 1 });
         res.json(messages);
     } catch (error) {
+        logControllerError('handleGetMessages', error, req);
         next(error);
     }
 };
@@ -238,6 +258,7 @@ export const handleStartDevServer = async (req, res, next) => {
         const result = await startDevServer(req.params.id, project.repoPath);
         res.json(result);
     } catch (error) {
+        logControllerError('handleStartDevServer', error, req);
         next(error);
     }
 };
@@ -250,6 +271,7 @@ export const handleStopDevServer = async (req, res, next) => {
         const stopped = stopDevServer(req.params.id);
         res.json({ stopped });
     } catch (error) {
+        logControllerError('handleStopDevServer', error, req);
         next(error);
     }
 };
@@ -262,6 +284,7 @@ export const handleServerStatus = async (req, res, next) => {
         const status = getDevServerStatus(req.params.id);
         res.json(status);
     } catch (error) {
+        logControllerError('handleServerStatus', error, req);
         next(error);
     }
 };

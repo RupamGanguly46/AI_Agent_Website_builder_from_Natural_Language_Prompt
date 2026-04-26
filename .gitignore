@@ -2,9 +2,26 @@
 env/
 __pycache__/
 .env
+.env.*
 *.pyc
 node_modules/
 ai/node_modules
-.gitignore
 NirmanaServiceAccountKey.json
 projects/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build artifacts
+frontend/dist/
+backend/dist/
+
+# Local runtime files
+backend/error.txt
+backend/tree.txt
+
+# OS/editor files
+.DS_Store
+Thumbs.db

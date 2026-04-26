@@ -31,13 +31,26 @@ if (missingVars.length > 0 && isProduction) {
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+    'https://nirmanabuilder.vercel.app',
+    process.env.FRONTEND_URL // Fallback injected by Render.com if provided
+].filter(Boolean);
+
 app.use(cors({
-    origin: [
-        'http://localhost:3000', 
-        'http://127.0.0.1:3000',
-        'https://nirmanabuilder.vercel.app',
-        process.env.FRONTEND_URL // Fallback injected by Render.com if provided
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+        // Allow non-browser tools like curl/postman (no Origin header)
+        if (!origin) return callback(null, true);
+
+        const isAllowedLocalhost =
+            /^http:\/\/localhost:\d+$/.test(origin) ||
+            /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+
+        if (isAllowedLocalhost || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -54,7 +67,7 @@ app.use('/users', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server Error:', err.message);
+  console.error(`[HTTP ${req.method} ${req.originalUrl}] ${err.message}`);
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 

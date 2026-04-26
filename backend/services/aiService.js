@@ -132,7 +132,9 @@ export const processPrompt = async (projectId, prompt) => {
     });
 
     emitLog(projectId, 'info', `Safely backing up AI generation payload upward to AWS S3 in the background...`);
-    uploadProjectToCloud(project._id).catch(console.error);
+    uploadProjectToCloud(project._id).catch((err) => {
+        console.error(`[S3] Backup after AI generation failed for project ${project._id}:`, err.message);
+    });
 
     return {
         commitHash,

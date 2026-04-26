@@ -45,8 +45,10 @@ export const createProject = async (name, framework = 'react', userId) => {
         prompt: 'Initial template setup',
     });
 
-    // Seed the blank blueprint up to Firebase Cloud natively in the background
-    uploadProjectToCloud(project._id).catch(console.error);
+    // Seed the blank blueprint up to S3 in the background
+    uploadProjectToCloud(project._id).catch((err) => {
+        console.error(`[S3] Initial backup failed for project ${project._id}:`, err.message);
+    });
 
     return {
         projectId: project._id,
@@ -77,7 +79,7 @@ export const getProject = async (projectId) => {
         console.warn(`[Sync] Project ${projectId} missing from ephemeral disk. Initiating cloud rehydration...`);
         const restored = await downloadProjectFromCloud(projectId);
         if (!restored) {
-            throw new Error('Critical failure: Repository lost and could not be successfully restored from Firebase Cloud Data.');
+            throw new Error('Critical failure: Repository lost and could not be restored from S3 cloud backup.');
         }
     }
 

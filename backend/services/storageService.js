@@ -29,6 +29,7 @@ const getS3Client = () => {
 };
 
 const getBucket = () => process.env.AWS_S3_BUCKET_NAME;
+const rehydrationInFlight = new Map();
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -102,6 +103,13 @@ export const uploadProjectToCloud = async (projectId) => {
  * Called by getProject() when the local directory is missing (Render restart).
  */
 export const downloadProjectFromCloud = async (projectId) => {
+    const key = projectId.toString();
+    if (rehydrationInFlight.has(key)) {
+        console.log(`[S3] Rehydration already in progress for project ${projectId}, waiting...`);
+        return rehydrationInFlight.get(key);
+    }
+
+    const runRehydration = async () => {
     const BUCKET = getBucket();
     const s3 = getS3Client();
 
@@ -111,7 +119,8 @@ export const downloadProjectFromCloud = async (projectId) => {
     }
 
     const repoPath = path.join(getProjectsDir(), projectId.toString());
-    const zipPath  = `${repoPath}.zip`;
+    // Use a unique temp zip to avoid collisions across requests/processes
+    const zipPath  = path.join(os.tmpdir(), `nirmana-restore-${projectId}-${Date.now()}.zip`);
     const s3Key    = `projects/${projectId}.zip`;
 
     console.log(`[S3] Checking if backup exists for project ${projectId}...`);
@@ -148,4 +157,11 @@ export const downloadProjectFromCloud = async (projectId) => {
         if (await fs.pathExists(zipPath)) await fs.remove(zipPath);
         return false;
     }
+    };
+
+    const task = runRehydration().finally(() => {
+        rehydrationInFlight.delete(key);
+    });
+    rehydrationInFlight.set(key, task);
+    return task;
 };

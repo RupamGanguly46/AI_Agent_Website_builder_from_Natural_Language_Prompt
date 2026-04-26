@@ -16,6 +16,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     if (!idToken) {
+        console.warn(`[Auth] Missing bearer token for ${req.method} ${req.originalUrl}`);
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
 

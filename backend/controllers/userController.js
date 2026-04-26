@@ -6,6 +6,7 @@ export const handleSyncUser = async (req, res, next) => {
         const firebaseUid = req.user.uid; // guaranteed by verifyToken middleware
 
         if (!email || !name) {
+            console.warn(`[UserController:handleSyncUser] Missing fields for firebaseUid ${firebaseUid}`);
             return res.status(400).json({ error: 'Missing required user fields: email and name' });
         }
 
@@ -18,6 +19,7 @@ export const handleSyncUser = async (req, res, next) => {
 
         res.status(200).json({ success: true, user });
     } catch (error) {
+        console.error(`[UserController:handleSyncUser] ${req.method} ${req.originalUrl} failed:`, error.message);
         next(error);
     }
 };

@@ -18,6 +18,19 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     }
 }
 
+// Optional: load credentials from a json file path for local development
+if (!serviceAccount && process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+    try {
+        const envPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+        const keyPath = path.isAbsolute(envPath)
+            ? envPath
+            : path.resolve(__dirname, '..', '..', envPath);
+        serviceAccount = require(keyPath);
+    } catch (error) {
+        console.error("❌ Failed to load FIREBASE_SERVICE_ACCOUNT_PATH:", error.message);
+    }
+}
+
 // Fallback to local file for development ONLY
 if (!serviceAccount && !isProduction) {
     try {
