@@ -11,6 +11,33 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..');
 // Azure Support: Mount external persistent volume if provided, fallback to local
 const PROJECTS_DIR = process.env.AZURE_STORAGE_MOUNT_PATH || path.join(ROOT_DIR, 'projects');
 const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
+const STORAGE_HEALTHCHECK_FILE = '.nirmana-storage-check.tmp';
+
+export const verifyProjectsStorage = async () => {
+    const configuredMount = process.env.AZURE_STORAGE_MOUNT_PATH;
+    const usingAzureMount = Boolean(configuredMount);
+
+    console.log(`[Storage] Projects dir resolved to: ${PROJECTS_DIR}`);
+    if (usingAzureMount) {
+        console.log(`[Storage] AZURE_STORAGE_MOUNT_PATH is set: ${configuredMount}`);
+    } else {
+        console.warn('[Storage] AZURE_STORAGE_MOUNT_PATH is not set. Using local ephemeral disk.');
+    }
+
+    try {
+        await fs.ensureDir(PROJECTS_DIR);
+
+        const probeFilePath = path.join(PROJECTS_DIR, STORAGE_HEALTHCHECK_FILE);
+        await fs.writeFile(probeFilePath, `healthcheck:${Date.now()}`);
+        await fs.remove(probeFilePath);
+
+        console.log(`[Storage] Writable check passed for projects dir: ${PROJECTS_DIR}`);
+        return true;
+    } catch (error) {
+        console.error(`[Storage] Writable check failed for projects dir "${PROJECTS_DIR}":`, error.message);
+        return false;
+    }
+};
 
 /**
  * Create a new project from a template

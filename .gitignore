@@ -1,4 +1,5 @@
 .venv/
+testsprite_tests/
 env/
 __pycache__/
 .env

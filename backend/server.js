@@ -8,6 +8,7 @@ import connectDB from './config/db.js';
 import projectRoutes from './routes/projectRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import { verifyProjectsStorage } from './services/projectService.js';
 
 // Load env from root .env file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -83,6 +84,11 @@ process.on('unhandledRejection', (err) => {
 
 const startServer = async () => {
   try {
+    const storageReady = await verifyProjectsStorage();
+    if (!storageReady) {
+      console.warn('[Storage] Continuing startup, but project workspace writes may fail.');
+    }
+
     await connectDB();
     app.listen(PORT, () => {
       console.log(`\n🚀 AI Builder Backend running on http://localhost:${PORT}`);
