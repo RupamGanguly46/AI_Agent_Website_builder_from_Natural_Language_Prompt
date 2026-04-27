@@ -8,5 +8,6 @@ export default defineConfig({
         host: true,
         cors: true,
         strictPort: false,
+        allowedHosts: true,
     },
 });

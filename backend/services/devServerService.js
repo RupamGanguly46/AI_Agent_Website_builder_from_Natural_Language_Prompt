@@ -124,18 +124,21 @@ export const proxyProjectRequest = (projectId, req, res) => {
     const targetPath = req.url.split('/proxy')[1] || '/';
 
     const options = {
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         port: port,
         path: targetPath,
         method: req.method,
-        headers: req.headers,
+        headers: { ...req.headers }
     };
 
-    // Remove headers that might interfere with proxying or trigger CORS checks in Vite
-    delete options.headers.host;
+    // Robust sanitization to make the request look truly local to Vite
+    options.headers.host = `127.0.0.1:${port}`;
     delete options.headers.connection;
     delete options.headers.origin;
     delete options.headers.referer;
+    delete options.headers['x-forwarded-for'];
+    delete options.headers['x-forwarded-proto'];
+    delete options.headers['x-forwarded-host'];
 
     const proxyReq = http.request(options, (proxyRes) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);
