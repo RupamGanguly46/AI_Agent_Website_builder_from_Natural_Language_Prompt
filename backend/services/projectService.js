@@ -7,10 +7,11 @@ import { initRepo } from './gitService.js';
 import { uploadProjectToCloud, downloadProjectFromCloud } from './storageService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR = path.resolve(__dirname, '..', '..');
+const BACKEND_DIR = path.resolve(__dirname, '..');
+
 // Azure Support: Mount external persistent volume if provided, fallback to local
-const PROJECTS_DIR = process.env.AZURE_STORAGE_MOUNT_PATH || path.join(ROOT_DIR, 'projects');
-const TEMPLATES_DIR = path.join(ROOT_DIR, 'templates');
+const PROJECTS_DIR = process.env.AZURE_STORAGE_MOUNT_PATH || path.join(BACKEND_DIR, 'projects');
+const TEMPLATES_DIR = path.join(BACKEND_DIR, 'templates');
 const STORAGE_HEALTHCHECK_FILE = '.nirmana-storage-check.tmp';
 
 export const verifyProjectsStorage = async () => {
