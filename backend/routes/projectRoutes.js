@@ -13,6 +13,7 @@ import {
     handleServerStatus,
     handleGetLogs,
     handleUpdateFileContent,
+    handleProxyRequest
 } from '../controllers/projectController.js';
 import verifyToken from '../middleware/verifyToken.js';
 
@@ -44,5 +45,8 @@ router.post('/:id/start', handleStartDevServer);
 router.post('/:id/stop', handleStopDevServer);
 router.get('/:id/server-status', handleServerStatus);
 router.get('/:id/logs', handleGetLogs);
+
+// Proxy for dev server preview
+router.all('/:id/proxy*', handleProxyRequest);
 
 export default router;

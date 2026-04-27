@@ -2,13 +2,41 @@ import { spawn, exec } from 'child_process';
 import util from 'util';
 import fs from 'fs-extra';
 import path from 'path';
+import net from 'net';
+import http from 'http';
 import { emitLog } from '../utils/logger.js';
 
 const execPromise = util.promisify(exec);
 
 // In-memory store of running dev servers
 const servers = new Map();
-let nextPort = 3100;
+
+/**
+ * Check if a port is available
+ */
+const isPortAvailable = (port) => {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', () => resolve(false));
+        server.once('listening', () => {
+            server.close();
+            resolve(true);
+        });
+        server.listen(port);
+    });
+};
+
+/**
+ * Find an available port starting from a base
+ */
+const findAvailablePort = async (startPort) => {
+    let port = startPort;
+    while (!(await isPortAvailable(port))) {
+        port++;
+        if (port > startPort + 1000) throw new Error('No available ports found in range 3100-4100');
+    }
+    return port;
+};
 
 /**
  * Start a Vite dev server for a project
@@ -19,17 +47,16 @@ export const startDevServer = async (projectId, projectPath) => {
         return { port: servers.get(projectId).port, alreadyRunning: true };
     }
 
-    const port = nextPort++;
+    // Find a fresh available port to avoid "Port Busy" errors
+    const port = await findAvailablePort(3100);
 
     try {
         const vitePath = path.join(projectPath, 'node_modules', 'vite');
         if (!(await fs.pathExists(vitePath))) {
             emitLog(projectId, 'dev-server', 'Running npm install...');
-            // Run install - ensuring dev dependencies (like vite) are included even in production environments
+            // Run install - ensuring dev dependencies (like vite) are included
             await execPromise('npm install --include=dev', { cwd: projectPath });
             emitLog(projectId, 'dev-server', 'npm install completed.');
-        } else {
-            console.log(`[DevServer ${projectId}] node_modules already exists, skipping npm install.`);
         }
     } catch (err) {
         emitLog(projectId, 'error', `npm install failed: ${err.message}`);
@@ -76,11 +103,51 @@ export const startDevServer = async (projectId, projectPath) => {
 
         setTimeout(() => {
             clearInterval(interval);
-            resolve(); // Resolve anyway after timeout
+            resolve();
         }, 15000);
     });
 
     return { port, alreadyRunning: false };
+};
+
+/**
+ * Proxy a request to a project's dev server
+ */
+export const proxyProjectRequest = (projectId, req, res) => {
+    const server = servers.get(projectId);
+    if (!server) {
+        return res.status(404).send('Dev server not running for this project. Please start it first.');
+    }
+
+    const { port } = server;
+    // Strip the /projects/:id/proxy part from the URL
+    const targetPath = req.url.split('/proxy')[1] || '/';
+
+    const options = {
+        hostname: 'localhost',
+        port: port,
+        path: targetPath,
+        method: req.method,
+        headers: req.headers,
+    };
+
+    // Remove headers that might interfere with proxying
+    delete options.headers.host;
+    delete options.headers.connection;
+
+    const proxyReq = http.request(options, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+        console.error(`[Proxy Error] ${err.message}`);
+        if (!res.headersSent) {
+            res.status(502).send('Error connecting to dev server: ' + err.message);
+        }
+    });
+
+    req.pipe(proxyReq, { end: true });
 };
 
 /**
