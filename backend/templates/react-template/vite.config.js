@@ -6,5 +6,7 @@ export default defineConfig({
     base: './',
     server: {
         host: true,
+        cors: true,
+        strictPort: false,
     },
 });

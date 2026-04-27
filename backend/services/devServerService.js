@@ -131,9 +131,11 @@ export const proxyProjectRequest = (projectId, req, res) => {
         headers: req.headers,
     };
 
-    // Remove headers that might interfere with proxying
+    // Remove headers that might interfere with proxying or trigger CORS checks in Vite
     delete options.headers.host;
     delete options.headers.connection;
+    delete options.headers.origin;
+    delete options.headers.referer;
 
     const proxyReq = http.request(options, (proxyRes) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);
