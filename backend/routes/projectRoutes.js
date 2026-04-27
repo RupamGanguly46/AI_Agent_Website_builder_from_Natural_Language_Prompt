@@ -19,7 +19,11 @@ import verifyToken from '../middleware/verifyToken.js';
 
 const router = Router();
 
-// Apply Firebase token verification to all project routes
+// Proxy for dev server preview 
+// NOTE: This must stay ABOVE verifyToken because iframes/assets cannot send auth headers
+router.all('/:id/proxy*', handleProxyRequest);
+
+// Apply Firebase token verification to all other project routes
 router.use(verifyToken);
 
 // Project CRUD
@@ -45,8 +49,5 @@ router.post('/:id/start', handleStartDevServer);
 router.post('/:id/stop', handleStopDevServer);
 router.get('/:id/server-status', handleServerStatus);
 router.get('/:id/logs', handleGetLogs);
-
-// Proxy for dev server preview
-router.all('/:id/proxy*', handleProxyRequest);
 
 export default router;
