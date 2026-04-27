@@ -25,8 +25,8 @@ export const startDevServer = async (projectId, projectPath) => {
         const vitePath = path.join(projectPath, 'node_modules', 'vite');
         if (!(await fs.pathExists(vitePath))) {
             emitLog(projectId, 'dev-server', 'Running npm install...');
-            // Run install
-            await execPromise('npm install', { cwd: projectPath });
+            // Run install - ensuring dev dependencies (like vite) are included even in production environments
+            await execPromise('npm install --include=dev', { cwd: projectPath });
             emitLog(projectId, 'dev-server', 'npm install completed.');
         } else {
             console.log(`[DevServer ${projectId}] node_modules already exists, skipping npm install.`);
