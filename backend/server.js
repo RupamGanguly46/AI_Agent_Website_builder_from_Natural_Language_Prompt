@@ -35,8 +35,8 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow all origins (reflect them back) to ensure VPNs and previews work
-        callback(null, true);
+        if (!origin) return callback(null, true);
+        return callback(null, origin); // Explicitly reflect the requested origin
     },
     credentials: true,
 }));

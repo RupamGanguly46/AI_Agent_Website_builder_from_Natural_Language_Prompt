@@ -63,8 +63,9 @@ export const startDevServer = async (projectId, projectPath) => {
         throw new Error('Failed to install dependencies: ' + err.message);
     }
 
-    // Start dev server with the assigned port
-    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host'], {
+    // Start dev server with the assigned port and proper base path
+    const basePath = `/projects/${projectId}/proxy/`;
+    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host', '--base', basePath], {
         cwd: projectPath,
         shell: true,
         stdio: 'pipe',
@@ -120,8 +121,8 @@ export const proxyProjectRequest = (projectId, req, res) => {
     }
 
     const { port } = server;
-    // Strip the /projects/:id/proxy part from the URL
-    const targetPath = req.url.split('/proxy')[1] || '/';
+    // Forward the exact original URL since Vite is now aware of the base path
+    const targetPath = req.originalUrl;
 
     const options = {
         hostname: '127.0.0.1',
