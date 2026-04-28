@@ -34,7 +34,10 @@ app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
-    origin: true, // Allow all origins and reflect them back to the browser
+    origin: (origin, callback) => {
+        // Allow all origins (reflect them back) to ensure VPNs and previews work
+        callback(null, true);
+    },
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
