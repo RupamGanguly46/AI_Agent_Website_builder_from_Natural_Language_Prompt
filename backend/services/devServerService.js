@@ -146,9 +146,18 @@ export const proxyProjectRequest = (projectId, req, res) => {
     });
 
     proxyReq.on('error', (err) => {
-        console.error(`[Proxy Error] ${err.message}`);
+        console.error(`[Proxy Error] ${projectId} -> ${targetPath}: ${err.message}`);
+        emitLog(projectId, 'error', `Proxy error: ${err.message}`);
         if (!res.headersSent) {
             res.status(502).send('Error connecting to dev server: ' + err.message);
+        }
+    });
+
+    // Set a timeout for the proxy request
+    proxyReq.setTimeout(10000, () => {
+        proxyReq.destroy();
+        if (!res.headersSent) {
+            res.status(504).send('Dev server timeout');
         }
     });
 

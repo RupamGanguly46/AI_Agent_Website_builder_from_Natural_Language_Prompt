@@ -30,6 +30,7 @@ if (missingVars.length > 0 && isProduction) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Middleware
 const allowedOrigins = [
@@ -46,7 +47,13 @@ app.use(cors({
             /^http:\/\/localhost:\d+$/.test(origin) ||
             /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
 
-        if (isAllowedLocalhost || allowedOrigins.includes(origin)) {
+        const isAllowedAzure = origin.endsWith('.azurewebsites.net');
+
+        // Also allow the request if the origin matches the backend's own host (self-referencing)
+        const host = req.get('host');
+        const isSelf = origin.includes(host);
+
+        if (isAllowedLocalhost || isAllowedAzure || isSelf || allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
 
