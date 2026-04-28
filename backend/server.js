@@ -33,32 +33,8 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Middleware
-const allowedOrigins = [
-    'https://nirmanabuilder.vercel.app',
-    process.env.FRONTEND_URL // Fallback injected by Render.com if provided
-].filter(Boolean);
-
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow non-browser tools like curl/postman (no Origin header)
-        if (!origin) return callback(null, true);
-
-        const isAllowedLocalhost =
-            /^http:\/\/localhost:\d+$/.test(origin) ||
-            /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
-
-        const isAllowedAzure = origin.endsWith('.azurewebsites.net');
-
-        // Also allow the request if the origin matches the backend's own host (self-referencing)
-        const host = req.get('host');
-        const isSelf = origin.includes(host);
-
-        if (isAllowedLocalhost || isAllowedAzure || isSelf || allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-
-        return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
+    origin: true, // Allow all origins and reflect them back to the browser
     credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
