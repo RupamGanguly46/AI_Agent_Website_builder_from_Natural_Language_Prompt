@@ -9,6 +9,7 @@ import projectRoutes from './routes/projectRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import { verifyProjectsStorage } from './services/projectService.js';
+import { proxyWebSocket } from './services/devServerService.js';
 
 // Load env from root .env file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,9 +77,21 @@ const startServer = async () => {
     }
 
     await connectDB();
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`\n🚀 AI Builder Backend running on http://localhost:${PORT}`);
       console.log(`📦 Health check: http://localhost:${PORT}/health\n`);
+    });
+
+    // Handle WebSocket upgrades for Vite HMR proxy
+    server.on('upgrade', (req, socket, head) => {
+      // Check if this is a proxy route: /projects/:id/proxy/
+      const match = req.url.match(/^\/projects\/([^/]+)\/proxy\//);
+      if (match) {
+        const projectId = match[1];
+        proxyWebSocket(projectId, req, socket, head);
+      } else {
+        socket.destroy();
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error.message);

@@ -188,3 +188,52 @@ export const getDevServerStatus = (projectId) => {
     }
     return { running: false, port: null };
 };
+
+/**
+ * Proxy WebSocket upgrades for Vite HMR
+ */
+export const proxyWebSocket = (projectId, req, socket, head) => {
+    const server = servers.get(projectId);
+    if (!server) {
+        socket.destroy();
+        return;
+    }
+
+    const { port } = server;
+    // req.url contains the full path including /projects/:id/proxy/
+    // Vite is aware of this base path, so we forward it exactly.
+    const targetPath = req.url;
+
+    const options = {
+        hostname: '127.0.0.1',
+        port: port,
+        path: targetPath,
+        method: req.method,
+        headers: { ...req.headers }
+    };
+
+    // Make it look local
+    options.headers.host = `127.0.0.1:${port}`;
+    
+    // We do NOT delete upgrade headers here because we need them for WS
+
+    const proxyReq = http.request(options);
+    
+    proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
+        // Send the upgrade response back to the client
+        socket.write('HTTP/1.1 101 Switching Protocols\r\n' +
+                     Object.keys(proxyRes.headers).map(k => `${k}: ${proxyRes.headers[k]}\r\n`).join('') +
+                     '\r\n');
+        
+        // Pipe the sockets
+        proxySocket.pipe(socket);
+        socket.pipe(proxySocket);
+    });
+
+    proxyReq.on('error', (err) => {
+        console.error(`[WS Proxy Error] ${projectId} -> ${targetPath}: ${err.message}`);
+        socket.destroy();
+    });
+
+    req.pipe(proxyReq);
+};

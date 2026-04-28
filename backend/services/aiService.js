@@ -65,6 +65,14 @@ export const processPrompt = async (projectId, prompt) => {
 
     emitLog(projectId, 'info', `Processing new prompt: "${prompt}"`);
 
+    // IMMEDIATELY store the user's message so it is never lost if the AI or server crashes
+    let userMessageRecord = await Message.create({
+        projectId: project._id,
+        commitHash: null,
+        role: 'user',
+        content: prompt,
+    });
+
     // Run LangGraph agent pipeline
     const graph = createGraph();
     const result = await graph.invoke({ prompt, projectId, currentCodebase });
@@ -86,8 +94,14 @@ export const processPrompt = async (projectId, prompt) => {
             emitLog(projectId, 'info', 'Detected dependencies update in package.json. Installing via npm...');
             try {
                 // Background execute npm install gracefully in the generated folder
-                await execAsync('npm install', { cwd: repoPath });
-                emitLog(projectId, 'info', '✨ Dependencies successfully installed!');
+                // DO NOT await this to prevent Vercel/Azure 504 Gateway Timeouts
+                execAsync('npm install', { cwd: repoPath })
+                    .then(() => emitLog(projectId, 'info', '✨ Dependencies successfully installed in background!'))
+                    .catch(err => {
+                        emitLog(projectId, 'error', `⚠️ Warning: Failed to install packages natively: ${err.message}`);
+                        console.error('NPM Install Error:', err);
+                    });
+                emitLog(projectId, 'info', 'Started dependency installation in the background. Continuing...');
             } catch (err) {
                 emitLog(projectId, 'error', `⚠️ Warning: Failed to install packages natively: ${err.message}`);
                 console.error('NPM Install Error:', err);
@@ -110,13 +124,11 @@ export const processPrompt = async (projectId, prompt) => {
         emitLog(projectId, 'info', 'No files were generated; AI responded with a conversational message.');
     }
 
-    // Store conversation messages
-    await Message.create({
-        projectId: project._id,
-        commitHash,
-        role: 'user',
-        content: prompt,
-    });
+    // Link the user's message to the commit now that it's created
+    if (commitHash) {
+        userMessageRecord.commitHash = commitHash;
+        await userMessageRecord.save();
+    }
 
     let defaultAssistantContent = '';
     if (files.length > 0) {
