@@ -335,6 +335,20 @@ function Workspace() {
         } catch (err) {
             const errorMsg = err.response?.data?.error || err.message;
             setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${errorMsg}` }]);
+            // The server may have completed the work even though the response failed (CORS/timeout).
+            // Auto-refresh from DB so the UI stays in sync.
+            try {
+                const [filesRes, commitsRes, msgsRes] = await Promise.all([
+                    getFiles(projectId),
+                    getCommits(projectId),
+                    getMessages(projectId),
+                ]);
+                setFiles(filesRes.data);
+                setCommits(commitsRes.data);
+                if (msgsRes.data?.length > 0) setMessages(msgsRes.data);
+            } catch (_refreshErr) {
+                // Refresh failed too — server is truly unreachable, leave the error message as-is
+            }
         } finally {
             setIsLoading(false);
         }

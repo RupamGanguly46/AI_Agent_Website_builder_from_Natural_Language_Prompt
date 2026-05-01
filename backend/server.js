@@ -34,11 +34,24 @@ if (missingVars.length > 0 && isProduction) {
 const app = express();
 app.set('trust proxy', 1);
 
-// Middleware
+// Raw CORS headers — ensures they are present even on Azure gateway timeouts / error responses
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        return callback(null, origin); // Explicitly reflect the requested origin
+        return callback(null, origin);
     },
     credentials: true,
 }));
