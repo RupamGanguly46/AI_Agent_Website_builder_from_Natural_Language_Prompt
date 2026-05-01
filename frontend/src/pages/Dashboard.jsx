@@ -16,6 +16,7 @@ function Dashboard() {
     const [isCreating, setIsCreating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLightMode, setIsLightMode] = useState(document.documentElement.classList.contains('light'));
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -90,8 +91,16 @@ function Dashboard() {
 
     return (
         <div className="dashboard-page flex bg-background overflow-hidden relative min-h-[1024px] w-full">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* NavigationDrawer */}
-            <aside className="w-64 fixed left-0 top-0 flex flex-col h-full border-r border-white/5 bg-[#131315]/80 backdrop-blur-xl shadow-[20px_0px_40px_rgba(173,198,255,0.03)] z-50 transition-all duration-300">
+            <aside className={`w-64 fixed left-0 top-0 flex flex-col h-full border-r border-white/5 bg-[#131315]/80 backdrop-blur-xl shadow-[20px_0px_40px_rgba(173,198,255,0.03)] z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                 <div className="p-6">
                     <button
                         onClick={() => navigate('/')}
@@ -132,14 +141,20 @@ function Dashboard() {
             </aside>
 
             {/* Main Canvas */}
-            <main className="flex-1 ml-64 min-h-[1024px] relative overflow-y-auto transition-all duration-300">
+            <main className="flex-1 ml-0 md:ml-64 min-h-[1024px] relative overflow-y-auto transition-all duration-300 w-full md:w-auto">
                 {/* TopAppBar */}
-                <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[#131315]/40 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-white/5 transition-all duration-300">
-                    <div className="flex items-center gap-4 flex-1 max-w-xl">
-                        <div className="flex items-center w-full bg-surface-container-lowest rounded-xl px-3 gap-2 focus-within:ring-1 focus-within:ring-primary border border-transparent" style={isLightMode ? {border: '1px solid #e2e8f0', background: '#f8fafc'} : {}}>
-                            <span className="material-symbols-outlined text-slate-400 flex-shrink-0 select-none" style={{fontSize: '16px'}}>search</span>
+                <header className="fixed top-0 right-0 w-full md:w-[calc(100%-16rem)] z-40 bg-[#131315]/40 backdrop-blur-md flex justify-between items-center px-4 md:px-8 h-16 border-b border-white/5 transition-all duration-300">
+                    <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-xl">
+                        <button 
+                            className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <span className="material-symbols-outlined">menu</span>
+                        </button>
+                        <div className="flex items-center w-full bg-[#131315]/50 rounded-xl px-3 gap-2 focus-within:ring-1 focus-within:ring-primary border border-white/10" style={isLightMode ? {border: '1px solid #e2e8f0', background: '#f8fafc'} : {}}>
+                            <span className="material-symbols-outlined text-slate-400 flex-shrink-0 select-none hidden md:block" style={{fontSize: '16px'}}>search</span>
                             <input 
-                                className="flex-1 bg-transparent outline-none py-2 text-xs placeholder:text-slate-400/60 transition-all" 
+                                className="flex-1 bg-transparent border-none outline-none py-2 text-xs placeholder:text-slate-400/60 transition-all" 
                                 style={isLightMode ? {color: '#1e293b'} : {color: 'inherit'}}
                                 placeholder="Search cinematic workflows..." 
                                 type="text"
@@ -148,46 +163,46 @@ function Dashboard() {
                             />
                         </div>
                     </div>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 md:gap-6">
                         {/* Theme Toggle */}
                         <button 
-                            className="p-2 rounded-full hover:bg-slate-500/10 text-slate-500 dark:text-slate-300 transition-colors flex items-center justify-center" 
+                            className="p-2 rounded-full hover:bg-slate-500/10 text-slate-500 dark:text-slate-300 transition-colors flex items-center justify-center hidden md:flex" 
                             onClick={() => setIsLightMode(!isLightMode)}
                         >
                             <span className="material-symbols-outlined" id="theme-icon">{isLightMode ? 'light_mode' : 'dark_mode'}</span>
                         </button>
                         {/* User info + Logout */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
                             <div className="text-right hidden md:block">
                                 <p className="text-xs font-semibold text-on-surface font-manrope">{currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}</p>
                                 <p className="text-[10px] text-primary">Active Session</p>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-[1px]">
-                                <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-                                    <img alt="User Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEwsmZzyjOawnG17OyWppFKBOyP1UeuWIPxqud-Kz-NrfCqijP4E0I0EeDGxIk9y5Z20zwb5Ld6Jqb4H_WIOMvU1i7vTH91FSXUSSSnyhsj3S7BZa5dyaJeaftL7vEp03KbJsf1gU1-ggFEf_kJx8GmXtpUKOiK-s49Oobq73bDoULcdvJ_kIxwapBFci4ZoQG4cWx06ozIGchNQkKyIEDDACFWtGtLIiLGerYFO7sa5t_9bpgGUziUaiBc18a-puE65EgeEgseqg" />
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#d8e2ff] to-[#e9b3ff] p-[1px] flex-shrink-0">
+                                <div className="w-full h-full rounded-full bg-[#131315] flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-sm text-[#d8e2ff]">person</span>
                                 </div>
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-red-400/50 hover:bg-red-500/10 transition-all duration-300"
+                                className="flex justify-center items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-red-400/50 hover:bg-red-500/10 transition-all duration-300 w-28 shrink-0"
                             >
                                 <span className="material-symbols-outlined" style={{fontSize: '14px'}}>logout</span>
-                                Log Out
+                                <span className="hidden md:inline">Log Out</span>
                             </button>
                         </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <div className="pt-24 pb-12 px-12">
+                <div className="pt-20 pb-12 px-6 md:px-12 overflow-x-hidden">
                     {/* Hero Header */}
-                    <div className="flex justify-between items-end mb-12">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 md:mb-12">
                         <div>
-                            <h2 className="text-5xl font-extrabold font-headline tracking-tighter mb-2 text-white transition-all duration-300" style={{WebkitTextFillColor: 'unset'}}>Your Projects</h2>
-                            <p className="text-on-surface-variant max-w-lg font-body transition-colors duration-300">Manage and deploy your high-fidelity cinematic websites within our ethereal integrated development environment.</p>
+                            <h2 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tighter mb-2 text-white transition-all duration-300" style={{WebkitTextFillColor: 'unset'}}>Your Projects</h2>
+                            <p className="text-sm md:text-base text-on-surface-variant max-w-lg font-body transition-colors duration-300">Manage and deploy your high-fidelity cinematic websites within our ethereal integrated development environment.</p>
                         </div>
                         <button 
-                            className="bg-[#adc6ff] hover:bg-[#bdd4ff] text-black font-manrope font-bold py-3 px-8 rounded-xl hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(173,198,255,0.3)]"
+                            className="w-full md:w-auto bg-[#adc6ff] hover:bg-[#bdd4ff] text-black font-manrope font-bold py-3 px-8 rounded-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(173,198,255,0.3)]"
                             onClick={() => setShowModal(true)}
                         >
                             <span className="material-symbols-outlined text-lg">add</span>

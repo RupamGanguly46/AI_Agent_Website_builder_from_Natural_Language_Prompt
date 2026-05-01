@@ -11,7 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
     const location = useLocation();
-    const hideNavAndFooter = location.pathname.startsWith('/dashboard');
+    const hideNavAndFooter = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/workspace');
 
     return (
         <div className="app-root font-body text-on-background selection:bg-primary selection:text-black min-h-screen flex flex-col">

@@ -192,6 +192,8 @@ function Workspace() {
     const [isDark, setIsDark] = useState(true);
     const [overlayVisible, setOverlayVisible] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [mobileAiOpen, setMobileAiOpen] = useState(false);
     const chatRef = useRef(null);
     const { currentUser, logout } = useAuth();
 
@@ -505,11 +507,15 @@ function Workspace() {
 
             <div className={`overflow-hidden flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#131315] text-[#e5e1e4]' : 'ws-light bg-[#F8FAFC] text-[#1E293B]'}`} style={{ height: '100vh', fontFamily: 'Inter' }}>
 
-                {/* ── TopAppBar ──────────────────────────────────────────────── */}
-                <header className="bg-[#131315]/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full fixed top-0 z-50 border-b border-white/5">
-                    <div className="flex items-center gap-4">
-                        <button className="p-1 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center" onClick={goBack}>
-                            <span className="material-symbols-outlined text-slate-400">arrow_back</span>
+                {/* ── Top Header ────────────────────────────────────────────── */}
+                <header className="h-16 border-b border-white/5 bg-[#131315]/40 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 z-10 shrink-0">
+                    {/* Left: Logo & Project Name */}
+                    <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
+                        <button 
+                            className="lg:hidden p-1 text-slate-400 hover:text-white transition-colors"
+                            onClick={() => setMobileMenuOpen(true)}
+                        >
+                            <span className="material-symbols-outlined">menu</span>
                         </button>
                         <button
                             className="cursor-pointer hover:opacity-85 hover:scale-105 transition-all duration-300"
@@ -545,7 +551,7 @@ function Workspace() {
                             </span>
                         </button>
                         <button
-                            className="flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300"
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 w-28 shrink-0"
                             style={{ fontFamily: 'Manrope' }}
                             onClick={handleSaveFile}
                             disabled={savingFile || activeTab === 'preview'}
@@ -553,7 +559,7 @@ function Workspace() {
                             {savingFile ? 'SAVING...' : 'SAVE'}
                         </button>
                         <button 
-                            className="flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 min-w-[100px]" 
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 w-28 shrink-0" 
                             style={{ fontFamily: 'Manrope' }}
                             onClick={handleDeploy}
                             disabled={isDeploying}
@@ -569,7 +575,7 @@ function Workspace() {
                                 href={project.netlifyUrl} 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 ml-2"
+                                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 w-28 shrink-0"
                                 style={{ fontFamily: 'Manrope' }}
                             >
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
@@ -579,20 +585,36 @@ function Workspace() {
                         {/* Logout */}
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300"
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-red-400/50 hover:bg-red-500/10 transition-all duration-300 w-28 shrink-0"
                             style={{ fontFamily: 'Manrope' }}
                         >
                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>logout</span>
                             Log Out
                         </button>
+
+                        {/* Mobile AI Toggle */}
+                        <button 
+                            className="xl:hidden p-1 ml-1 text-slate-400 hover:text-white transition-colors shrink-0"
+                            onClick={() => setMobileAiOpen(true)}
+                        >
+                            <span className="material-symbols-outlined">smart_toy</span>
+                        </button>
                     </div>
                 </header>
 
                 {/* ── Main Layout ───────────────────────────────────────────── */}
-                <main className="flex flex-1 pt-16 overflow-hidden" style={{ height: '100vh' }}>
+                <main className="flex flex-1 overflow-hidden relative" style={{ height: 'calc(100vh - 64px)' }}>
+
+                    {/* Mobile Sidebar Overlays */}
+                    {mobileMenuOpen && (
+                        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+                    )}
+                    {mobileAiOpen && (
+                        <div className="fixed inset-0 bg-black/60 z-40 xl:hidden backdrop-blur-sm" onClick={() => setMobileAiOpen(false)} />
+                    )}
 
                     {/* ── Left Sidebar ──────────────────────────────────────── */}
-                    <aside id="ws-sidebar" className="bg-[#0E0E10]/90 backdrop-blur-2xl h-full w-64 hidden lg:flex flex-col border-r border-white/5 transition-all duration-300">
+                    <aside id="ws-sidebar" className={`bg-[#0E0E10]/90 backdrop-blur-2xl h-full w-64 flex flex-col border-r border-white/5 transition-transform duration-300 absolute lg:static z-50 left-0 top-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                         {/* User info */}
                         <div className="p-4 flex items-center gap-3 border-b border-white/5 mb-2">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#d8e2ff] to-[#e9b3ff] p-[1px] flex-shrink-0">
@@ -782,7 +804,7 @@ function Workspace() {
                     </section>
 
                     {/* ── Right AI Panel ─────────────────────────────────────── */}
-                    <aside id="ws-right-panel" className="w-80 h-full bg-[#1c1b1d] border-l border-white/5 flex flex-col hidden xl:flex transition-all duration-300">
+                    <aside id="ws-right-panel" className={`w-80 sm:w-96 xl:w-80 h-full bg-[#1c1b1d] border-l border-white/5 flex flex-col transition-transform duration-300 absolute xl:static z-50 right-0 top-0 ${mobileAiOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}`}>
                         {/* Panel Tabs Header */}
                         <div className="p-4 border-b border-white/5 flex flex-col gap-4">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
