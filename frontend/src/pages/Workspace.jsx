@@ -12,6 +12,8 @@ import {
     getServerStatus,
     getFileContent,
     updateFileContent,
+    getNetlifyAuthUrl,
+    deployToNetlify,
     SERVER_URL
 } from '../api/api';
 import Loader from '../components/Loader';
@@ -189,6 +191,7 @@ function Workspace() {
     const [showSaveNotif, setShowSaveNotif] = useState(false);
     const [isDark, setIsDark] = useState(true);
     const [overlayVisible, setOverlayVisible] = useState(false);
+    const [isDeploying, setIsDeploying] = useState(false);
     const chatRef = useRef(null);
     const { currentUser, logout } = useAuth();
 
@@ -396,6 +399,32 @@ function Workspace() {
         setTimeout(() => { navigate('/dashboard'); }, 1200);
     };
 
+    // ── Deploy ───────────────────────────────────────────────────────────────
+    const handleDeploy = async () => {
+        setIsDeploying(true);
+        try {
+            const { data } = await deployToNetlify(projectId);
+            setProject(prev => ({ ...prev, netlifyUrl: data.url }));
+            alert('Successfully deployed!');
+        } catch (err) {
+            if (err.response?.status === 401) {
+                // Not authenticated with Netlify
+                localStorage.setItem('netlify_deploy_project_id', projectId);
+                const redirectUri = window.location.origin + '/netlify/callback';
+                try {
+                    const { data } = await getNetlifyAuthUrl(redirectUri);
+                    window.location.href = data.url;
+                } catch (authErr) {
+                    alert('Failed to get auth URL: ' + authErr.message);
+                }
+            } else {
+                alert('Deploy failed: ' + (err.response?.data?.error || err.message));
+            }
+        } finally {
+            setIsDeploying(false);
+        }
+    };
+
     // ── Build flat file list for search ──────────────────────────────────────
     function flattenFiles(nodes, prefix = '') {
         if (!Array.isArray(nodes)) return [];
@@ -523,9 +552,30 @@ function Workspace() {
                         >
                             {savingFile ? 'SAVING...' : 'SAVE'}
                         </button>
-                        <button className="ws-premium-btn ws-btn-deploy text-[#122f5f] px-6 py-1.5 rounded-full font-bold text-xs tracking-widest transition-all" style={{ fontFamily: 'Manrope' }}>
-                            DEPLOY
+                        <button 
+                            className="ws-premium-btn ws-btn-deploy text-[#122f5f] px-6 py-1.5 rounded-full font-bold text-xs tracking-widest transition-all flex items-center justify-center min-w-[100px]" 
+                            style={{ fontFamily: 'Manrope' }}
+                            onClick={handleDeploy}
+                            disabled={isDeploying}
+                        >
+                            {isDeploying ? (
+                                <span className="w-4 h-4 border-2 border-[#122f5f] border-t-transparent rounded-full animate-spin"></span>
+                            ) : (
+                                'DEPLOY'
+                            )}
                         </button>
+                        {project?.netlifyUrl && (
+                            <a 
+                                href={project.netlifyUrl} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 ml-2"
+                                style={{ fontFamily: 'Manrope' }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
+                                Live Site
+                            </a>
+                        )}
                         {/* Logout */}
                         <button
                             onClick={handleLogout}

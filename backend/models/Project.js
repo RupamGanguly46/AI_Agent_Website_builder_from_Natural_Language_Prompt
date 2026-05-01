@@ -24,6 +24,14 @@ const projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+    },
+    netlifySiteId: {
+        type: String,
+        default: null,
+    },
+    netlifyUrl: {
+        type: String,
+        default: null,
     }
 });
 

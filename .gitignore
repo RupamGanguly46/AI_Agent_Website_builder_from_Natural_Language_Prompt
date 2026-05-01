@@ -1,5 +1,6 @@
 .venv/
 testsprite_tests/
+DeploymentTest/
 env/
 __pycache__/
 .env

@@ -63,9 +63,9 @@ export const startDevServer = async (projectId, projectPath) => {
         throw new Error('Failed to install dependencies: ' + err.message);
     }
 
-    // Start dev server with the assigned port and proper base path
+    // Start dev server with the assigned port, explicit 127.0.0.1 host to prevent IPv6/IPv4 mismatch, and proper base path
     const basePath = `/projects/${projectId}/proxy/`;
-    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host', '--base', basePath], {
+    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host', '127.0.0.1', '--base', basePath], {
         cwd: projectPath,
         shell: true,
         stdio: 'pipe',

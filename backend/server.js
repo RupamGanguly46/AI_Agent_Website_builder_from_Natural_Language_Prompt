@@ -8,6 +8,7 @@ import connectDB from './config/db.js';
 import projectRoutes from './routes/projectRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import netlifyRoutes from './routes/netlifyRoutes.js';
 import { verifyProjectsStorage } from './services/projectService.js';
 import { proxyWebSocket } from './services/devServerService.js';
 
@@ -52,6 +53,7 @@ app.get('/health', (req, res) => {
 app.use('/projects', projectRoutes);
 app.use('/ai', aiRoutes);
 app.use('/users', userRoutes);
+app.use('/api/netlify', netlifyRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

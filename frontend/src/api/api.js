@@ -75,4 +75,12 @@ export const stopDevServer = (projectId) =>
 export const getServerStatus = (projectId) =>
     api.get(`/projects/${projectId}/server-status`);
 
+// ─── Netlify ──────────────────────────────────────────
+
+export const getNetlifyAuthUrl = (redirectUri) =>
+    api.get(`/api/netlify/auth?redirectUri=${encodeURIComponent(redirectUri)}`);
+
+export const deployToNetlify = (projectId) =>
+    api.post(`/api/netlify/deploy/${projectId}`);
+
 export default api;
