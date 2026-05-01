@@ -545,7 +545,7 @@ function Workspace() {
                             </span>
                         </button>
                         <button
-                            className="ws-premium-btn ws-btn-save text-[#d8e2ff] px-6 py-1.5 rounded-full font-bold text-xs tracking-widest transition-all"
+                            className="flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300"
                             style={{ fontFamily: 'Manrope' }}
                             onClick={handleSaveFile}
                             disabled={savingFile || activeTab === 'preview'}
@@ -553,13 +553,13 @@ function Workspace() {
                             {savingFile ? 'SAVING...' : 'SAVE'}
                         </button>
                         <button 
-                            className="ws-premium-btn ws-btn-deploy text-[#122f5f] px-6 py-1.5 rounded-full font-bold text-xs tracking-widest transition-all flex items-center justify-center min-w-[100px]" 
+                            className="flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 min-w-[100px]" 
                             style={{ fontFamily: 'Manrope' }}
                             onClick={handleDeploy}
                             disabled={isDeploying}
                         >
                             {isDeploying ? (
-                                <span className="w-4 h-4 border-2 border-[#122f5f] border-t-transparent rounded-full animate-spin"></span>
+                                <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
                             ) : (
                                 'DEPLOY'
                             )}
@@ -569,7 +569,7 @@ function Workspace() {
                                 href={project.netlifyUrl} 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 ml-2"
+                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300 ml-2"
                                 style={{ fontFamily: 'Manrope' }}
                             >
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span>
@@ -579,7 +579,7 @@ function Workspace() {
                         {/* Logout */}
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-red-400/50 hover:bg-red-500/10 transition-all duration-300"
+                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 text-slate-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all duration-300"
                             style={{ fontFamily: 'Manrope' }}
                         >
                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>logout</span>
