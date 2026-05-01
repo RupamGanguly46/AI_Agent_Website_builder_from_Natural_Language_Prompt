@@ -93,7 +93,7 @@ export const startDevServer = async (projectId, projectPath) => {
 
     servers.set(projectId, { process: child, port });
 
-    // Wait for server to start (max 15 seconds)
+    // Wait for server to start (max 60 seconds for slow Azure environments)
     await new Promise((resolve) => {
         const interval = setInterval(() => {
             if (started) {
@@ -105,7 +105,7 @@ export const startDevServer = async (projectId, projectPath) => {
         setTimeout(() => {
             clearInterval(interval);
             resolve();
-        }, 15000);
+        }, 60000);
     });
 
     return { port, alreadyRunning: false };
@@ -150,7 +150,27 @@ export const proxyProjectRequest = (projectId, req, res) => {
         console.error(`[Proxy Error] ${projectId} -> ${targetPath}: ${err.message}`);
         emitLog(projectId, 'error', `Proxy error: ${err.message}`);
         if (!res.headersSent) {
-            res.status(502).send('Error connecting to dev server: ' + err.message);
+            if (err.code === 'ECONNREFUSED') {
+                // Return an auto-refreshing page while the server is still spinning up
+                res.status(502).send(`
+                    <html>
+                        <head>
+                            <meta http-equiv="refresh" content="3">
+                            <style>
+                                body { font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #131315; color: #d8e2ff; margin: 0; }
+                                .loader { border: 4px solid rgba(216, 226, 255, 0.1); border-top: 4px solid #adc6ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 15px; }
+                                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="loader"></div>
+                            <h2>Waking up development server... Please wait...</h2>
+                        </body>
+                    </html>
+                `);
+            } else {
+                res.status(502).send('Error connecting to dev server: ' + err.message);
+            }
         }
     });
 
