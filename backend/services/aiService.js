@@ -95,7 +95,7 @@ export const processPrompt = async (projectId, prompt) => {
             try {
                 // Background execute npm install gracefully in the generated folder
                 // DO NOT await this to prevent Vercel/Azure 504 Gateway Timeouts
-                execAsync('npm install', { cwd: repoPath })
+                execAsync('npm install --no-optional', { cwd: repoPath })
                     .then(() => emitLog(projectId, 'info', '✨ Dependencies successfully installed in background!'))
                     .catch(err => {
                         emitLog(projectId, 'error', `⚠️ Warning: Failed to install packages natively: ${err.message}`);

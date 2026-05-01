@@ -101,8 +101,17 @@ export const getProject = async (projectId) => {
         throw new Error('Project not found');
     }
 
+    // Always compute repoPath dynamically to handle cross-platform deployments
+    // (e.g. project created on Windows locally but running on Linux Azure)
+    const dynamicRepoPath = path.join(PROJECTS_DIR, projectId.toString());
+    if (project.repoPath !== dynamicRepoPath) {
+        console.log(`[Sync] Correcting stale repoPath for project ${projectId}: "${project.repoPath}" → "${dynamicRepoPath}"`);
+        project.repoPath = dynamicRepoPath;
+        await project.save();
+    }
+
     // NATIVE EPHEMERAL DISK CHECK
-    // If Render goes to sleep, MongoDB survives but the generated codebase folder vanishes!
+    // If the server restarts, MongoDB survives but the generated codebase folder vanishes!
     if (!(await fs.pathExists(project.repoPath))) {
         console.warn(`[Sync] Project ${projectId} missing from ephemeral disk. Initiating cloud rehydration...`);
         const restored = await downloadProjectFromCloud(projectId);
