@@ -22,9 +22,9 @@
     "extract-zip": "^2.0.1",
     "firebase-admin": "^13.8.0",
     "fs-extra": "^11.2.0",
+    "isomorphic-git": "^1.37.5",
     "langchain": "^0.3.18",
     "mongoose": "^8.9.5",
-    "simple-git": "^3.27.0",
     "uuid": "^11.0.5"
   },
   "overrides": {

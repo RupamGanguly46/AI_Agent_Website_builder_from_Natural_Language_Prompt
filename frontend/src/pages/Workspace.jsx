@@ -659,7 +659,7 @@ function Workspace() {
                                                 <div className="w-3 h-3 rounded-full bg-green-500/50" />
                                             </div>
                                             <div className="flex-1 text-center text-[10px] text-slate-500 font-mono tracking-wide">
-                                                {previewPort ? `http://localhost:${previewPort}` : 'localhost:3000/render-view'}
+                                                {previewPort ? `${SERVER_URL}/projects/${projectId}/proxy/` : 'Preview Engine Ready'}
                                             </div>
                                             <div className="flex justify-end min-w-[80px]">
                                                 {previewPort && (
@@ -679,7 +679,7 @@ function Workspace() {
                                             {previewPort ? (
                                                 <iframe
                                                     className="w-full h-full border-none bg-white"
-                                                    src={`http://localhost:${previewPort}`}
+                                                    src={`${SERVER_URL}/projects/${projectId}/proxy/`}
                                                     title="Project Preview"
                                                 />
                                             ) : (

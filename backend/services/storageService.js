@@ -110,6 +110,7 @@ export const downloadProjectFromCloud = async (projectId) => {
     }
 
     const runRehydration = async () => {
+    const startedAt = Date.now();
     const BUCKET = getBucket();
     const s3 = getS3Client();
 
@@ -141,19 +142,25 @@ export const downloadProjectFromCloud = async (projectId) => {
         await fs.ensureDir(getProjectsDir());
 
         const { Body } = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }));
+        console.log(`[S3] Streaming backup zip to temp file: ${zipPath}`);
         await pipeline(Body, createWriteStream(zipPath));
+        const zipStats = await fs.stat(zipPath);
+        console.log(`[S3] Download complete for project ${projectId}. Zip size: ${Math.round(zipStats.size / 1024)} KB`);
 
         // Wipe stale directory to avoid phantom file collisions
         if (await fs.pathExists(repoPath)) await fs.remove(repoPath);
         await fs.ensureDir(repoPath);
 
+        console.log(`[S3] Extracting project ${projectId} into ${repoPath}...`);
         await extract(zipPath, { dir: path.resolve(repoPath) });
         await fs.remove(zipPath);
 
-        console.log(`[S3] Successfully rehydrated project ${projectId} from S3.`);
+        const elapsedMs = Date.now() - startedAt;
+        console.log(`[S3] Successfully rehydrated project ${projectId} from S3 in ${elapsedMs}ms.`);
         return true;
     } catch (err) {
-        console.error(`[S3] Download/extract failed for project ${projectId}:`, err.message);
+        const elapsedMs = Date.now() - startedAt;
+        console.error(`[S3] Download/extract failed for project ${projectId} after ${elapsedMs}ms:`, err.message);
         if (await fs.pathExists(zipPath)) await fs.remove(zipPath);
         return false;
     }

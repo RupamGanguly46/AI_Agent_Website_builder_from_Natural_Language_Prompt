@@ -2,13 +2,41 @@ import { spawn, exec } from 'child_process';
 import util from 'util';
 import fs from 'fs-extra';
 import path from 'path';
+import net from 'net';
+import http from 'http';
 import { emitLog } from '../utils/logger.js';
 
 const execPromise = util.promisify(exec);
 
 // In-memory store of running dev servers
 const servers = new Map();
-let nextPort = 3100;
+
+/**
+ * Check if a port is available
+ */
+const isPortAvailable = (port) => {
+    return new Promise((resolve) => {
+        const server = net.createServer();
+        server.once('error', () => resolve(false));
+        server.once('listening', () => {
+            server.close();
+            resolve(true);
+        });
+        server.listen(port);
+    });
+};
+
+/**
+ * Find an available port starting from a base
+ */
+const findAvailablePort = async (startPort) => {
+    let port = startPort;
+    while (!(await isPortAvailable(port))) {
+        port++;
+        if (port > startPort + 1000) throw new Error('No available ports found in range 3100-4100');
+    }
+    return port;
+};
 
 /**
  * Start a Vite dev server for a project
@@ -19,25 +47,25 @@ export const startDevServer = async (projectId, projectPath) => {
         return { port: servers.get(projectId).port, alreadyRunning: true };
     }
 
-    const port = nextPort++;
+    // Find a fresh available port to avoid "Port Busy" errors
+    const port = await findAvailablePort(3100);
 
     try {
         const vitePath = path.join(projectPath, 'node_modules', 'vite');
         if (!(await fs.pathExists(vitePath))) {
             emitLog(projectId, 'dev-server', 'Running npm install...');
-            // Run install
-            await execPromise('npm install', { cwd: projectPath });
+            // Run install - ensuring dev dependencies (like vite) are included
+            await execPromise('npm install --include=dev', { cwd: projectPath });
             emitLog(projectId, 'dev-server', 'npm install completed.');
-        } else {
-            console.log(`[DevServer ${projectId}] node_modules already exists, skipping npm install.`);
         }
     } catch (err) {
         emitLog(projectId, 'error', `npm install failed: ${err.message}`);
         throw new Error('Failed to install dependencies: ' + err.message);
     }
 
-    // Start dev server with the assigned port
-    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host'], {
+    // Start dev server with the assigned port and proper base path
+    const basePath = `/projects/${projectId}/proxy/`;
+    const child = spawn('npm', ['run', 'dev', '--', '--port', port.toString(), '--host', '--base', basePath], {
         cwd: projectPath,
         shell: true,
         stdio: 'pipe',
@@ -76,11 +104,65 @@ export const startDevServer = async (projectId, projectPath) => {
 
         setTimeout(() => {
             clearInterval(interval);
-            resolve(); // Resolve anyway after timeout
+            resolve();
         }, 15000);
     });
 
     return { port, alreadyRunning: false };
+};
+
+/**
+ * Proxy a request to a project's dev server
+ */
+export const proxyProjectRequest = (projectId, req, res) => {
+    const server = servers.get(projectId);
+    if (!server) {
+        return res.status(404).send('Dev server not running for this project. Please start it first.');
+    }
+
+    const { port } = server;
+    // Forward the exact original URL since Vite is now aware of the base path
+    const targetPath = req.originalUrl;
+
+    const options = {
+        hostname: '127.0.0.1',
+        port: port,
+        path: targetPath,
+        method: req.method,
+        headers: { ...req.headers }
+    };
+
+    // Robust sanitization to make the request look truly local to Vite
+    options.headers.host = `127.0.0.1:${port}`;
+    delete options.headers.connection;
+    delete options.headers.origin;
+    delete options.headers.referer;
+    delete options.headers['x-forwarded-for'];
+    delete options.headers['x-forwarded-proto'];
+    delete options.headers['x-forwarded-host'];
+
+    const proxyReq = http.request(options, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+        console.error(`[Proxy Error] ${projectId} -> ${targetPath}: ${err.message}`);
+        emitLog(projectId, 'error', `Proxy error: ${err.message}`);
+        if (!res.headersSent) {
+            res.status(502).send('Error connecting to dev server: ' + err.message);
+        }
+    });
+
+    // Set a timeout for the proxy request
+    proxyReq.setTimeout(10000, () => {
+        proxyReq.destroy();
+        if (!res.headersSent) {
+            res.status(504).send('Dev server timeout');
+        }
+    });
+
+    req.pipe(proxyReq, { end: true });
 };
 
 /**
@@ -105,4 +187,53 @@ export const getDevServerStatus = (projectId) => {
         return { running: true, port: server.port };
     }
     return { running: false, port: null };
+};
+
+/**
+ * Proxy WebSocket upgrades for Vite HMR
+ */
+export const proxyWebSocket = (projectId, req, socket, head) => {
+    const server = servers.get(projectId);
+    if (!server) {
+        socket.destroy();
+        return;
+    }
+
+    const { port } = server;
+    // req.url contains the full path including /projects/:id/proxy/
+    // Vite is aware of this base path, so we forward it exactly.
+    const targetPath = req.url;
+
+    const options = {
+        hostname: '127.0.0.1',
+        port: port,
+        path: targetPath,
+        method: req.method,
+        headers: { ...req.headers }
+    };
+
+    // Make it look local
+    options.headers.host = `127.0.0.1:${port}`;
+    
+    // We do NOT delete upgrade headers here because we need them for WS
+
+    const proxyReq = http.request(options);
+    
+    proxyReq.on('upgrade', (proxyRes, proxySocket, proxyHead) => {
+        // Send the upgrade response back to the client
+        socket.write('HTTP/1.1 101 Switching Protocols\r\n' +
+                     Object.keys(proxyRes.headers).map(k => `${k}: ${proxyRes.headers[k]}\r\n`).join('') +
+                     '\r\n');
+        
+        // Pipe the sockets
+        proxySocket.pipe(socket);
+        socket.pipe(proxySocket);
+    });
+
+    proxyReq.on('error', (err) => {
+        console.error(`[WS Proxy Error] ${projectId} -> ${targetPath}: ${err.message}`);
+        socket.destroy();
+    });
+
+    req.pipe(proxyReq);
 };

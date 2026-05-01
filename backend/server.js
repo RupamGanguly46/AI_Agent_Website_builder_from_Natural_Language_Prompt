@@ -8,6 +8,8 @@ import connectDB from './config/db.js';
 import projectRoutes from './routes/projectRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import { verifyProjectsStorage } from './services/projectService.js';
+import { proxyWebSocket } from './services/devServerService.js';
 
 // Load env from root .env file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,27 +31,13 @@ if (missingVars.length > 0 && isProduction) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Middleware
-const allowedOrigins = [
-    'https://nirmanabuilder.vercel.app',
-    process.env.FRONTEND_URL // Fallback injected by Render.com if provided
-].filter(Boolean);
-
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow non-browser tools like curl/postman (no Origin header)
         if (!origin) return callback(null, true);
-
-        const isAllowedLocalhost =
-            /^http:\/\/localhost:\d+$/.test(origin) ||
-            /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
-
-        if (isAllowedLocalhost || allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-
-        return callback(new Error(`CORS blocked for origin: ${origin}`));
+        return callback(null, origin); // Explicitly reflect the requested origin
     },
     credentials: true,
 }));
@@ -83,10 +71,27 @@ process.on('unhandledRejection', (err) => {
 
 const startServer = async () => {
   try {
+    const storageReady = await verifyProjectsStorage();
+    if (!storageReady) {
+      console.warn('[Storage] Continuing startup, but project workspace writes may fail.');
+    }
+
     await connectDB();
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`\n🚀 AI Builder Backend running on http://localhost:${PORT}`);
       console.log(`📦 Health check: http://localhost:${PORT}/health\n`);
+    });
+
+    // Handle WebSocket upgrades for Vite HMR proxy
+    server.on('upgrade', (req, socket, head) => {
+      // Check if this is a proxy route: /projects/:id/proxy/
+      const match = req.url.match(/^\/projects\/([^/]+)\/proxy\//);
+      if (match) {
+        const projectId = match[1];
+        proxyWebSocket(projectId, req, socket, head);
+      } else {
+        socket.destroy();
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error.message);

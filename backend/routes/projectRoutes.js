@@ -13,12 +13,17 @@ import {
     handleServerStatus,
     handleGetLogs,
     handleUpdateFileContent,
+    handleProxyRequest
 } from '../controllers/projectController.js';
 import verifyToken from '../middleware/verifyToken.js';
 
 const router = Router();
 
-// Apply Firebase token verification to all project routes
+// Proxy for dev server preview 
+// NOTE: This must stay ABOVE verifyToken because iframes/assets cannot send auth headers
+router.all('/:id/proxy*', handleProxyRequest);
+
+// Apply Firebase token verification to all other project routes
 router.use(verifyToken);
 
 // Project CRUD

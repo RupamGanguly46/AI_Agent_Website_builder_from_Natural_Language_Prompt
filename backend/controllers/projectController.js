@@ -3,7 +3,7 @@ import { getCommits, revertToCommit, commitChanges } from '../services/gitServic
 import { uploadProjectToCloud } from '../services/storageService.js';
 import mongoose from 'mongoose';
 import { listFiles, readFileContent, writeFiles } from '../utils/fileUtils.js';
-import { startDevServer, stopDevServer, getDevServerStatus } from '../services/devServerService.js';
+import { startDevServer, stopDevServer, getDevServerStatus, proxyProjectRequest } from '../services/devServerService.js';
 import Commit from '../models/Commit.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
@@ -318,4 +318,17 @@ export const handleGetLogs = (req, res) => {
     req.on('close', () => {
         logEmitter.off('log', listener);
     });
+};
+
+/**
+ * ALL /projects/:id/proxy/*
+ * Proxy requests to the project's dev server
+ */
+export const handleProxyRequest = async (req, res, next) => {
+    try {
+        proxyProjectRequest(req.params.id, req, res);
+    } catch (error) {
+        logControllerError('handleProxyRequest', error, req);
+        next(error);
+    }
 };
